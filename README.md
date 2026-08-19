@@ -1,16 +1,16 @@
 # Mi proyecto
 
-Este es un proyecto realizado para la materia.
+Este es un proyecto realizado para la materia de Programacion Web.
 
 ## Integrantes
 
-- Patricio
-- Juan
-- Pedro
+- Allende, Matias Ignacio
+- Picchioni, Patricio
+- Ritcher, Matias
 
 ## Descripción
 
-El proyecto consiste en...
+El proyecto consiste en hacer el primer servidor web local, donde escuche en el puerto 8080.
 
 ## Cómo ejecutar
 
