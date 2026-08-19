@@ -4,7 +4,7 @@ Este es un proyecto realizado para la materia de Programacion Web.
 
 ## Integrantes
 
-- Allende, Matias Ignacio
+- Allende, Ignacio Matias
 - Picchioni, Patricio
 - Ritcher, Matias
 
