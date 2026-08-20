@@ -12,8 +12,14 @@ Este es un proyecto realizado para la materia de Programacion Web.
 
 El proyecto consiste en hacer el primer servidor web local, donde escuche en el puerto 8080.
 
-## Cómo ejecutar
+## Estructura del proyecto
+El proyecto por ahora tiene una estructura bastante simple.
+mi_servidor_web/ 
+  ├── main.go 
+  └── static/ 
+    └── index.html
 
-1. Clonar el repositorio.
-2. Entrar a la carpeta.
-3. Ejecutar el programa.
+## Cómo ejecutar
+Antes de poder ejecutar el proyecto, se tiene que clonar, para poder tener este proyecto local
+1. Clonar el repositorio
+   Para es es necesario primero abrir una terminal y ejecutar el comando git clone 
