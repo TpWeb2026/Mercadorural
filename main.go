@@ -5,23 +5,17 @@ import (
 	"net/http" // es lo que me permite crear un servidor web y manejar peticiones HTTP
 )
 
-func Mostrapag(w http.ResponseWriter, r *http.Request) {
-	// aca controlo la ruta inexistentes para que me de error, sino con el serverfile por mas que pongas una ruta inexistente te da lo del index.html
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
-
-	// si bien serverfile ya maneja internamente los Content-Type osea no es necesario hacerlo manual, pero lo dejo escrito por si acaso se pedia eso
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	// el serverfile sirve para un archivo, en cambio el fileserver es para server a archivos estaticos
-	http.ServeFile(w, r, "index.html")
-}
-
 func main() {
+	//Defino la direccion estatica
+	// con el FileServer ya se contemplan las rutas inexistentes por lo cual al ingresar a una ruta que no existe devuelve 404 page not found
+	// FileServer tambien contempla los Content-Type
+	// creo un manejador de archivos del sistema de archivo de "/static"
+	// el http.dir(staticdir) convierte la ruta del directorio en un sistema de archivo http
+	staticdir := "./static"
+	fs := http.FileServer(http.Dir(staticdir))
+
 	// Registramos que se muestre la pagina cada vez que se accede ala raiz
-	http.HandleFunc("/", Mostrapag)
+	http.Handle("/", fs)
 
 	// Define el puerto y muestra un mensaje
 	port := ":8080"
