@@ -1,6 +1,6 @@
 # Mi proyecto
 
-Este es un proyecto realizado para la materia de Programacion Web.
+Este es un proyecto realizado para la materia de Programación Web.
 
 ## Integrantes
 
@@ -35,9 +35,9 @@ Antes de poder ejecutar el proyecto, se tiene que clonar, para poder tener este 
   abrir una terminal y ejecutar el comando cd Mercadorural.
 
 4. Una vez ya ubicados en la carpeta, tenemos que ejecutar el siguiente comando: go run main.go
-   Si todo funciona bien, en la terminal, tendria que aparecer un mensaje que diga     "Servidor escuchando en http://localhost:8080"
+   Si todo funciona bien, en la terminal, tendría que aparecer un mensaje que diga     "Servidor escuchando en http://localhost:8080"
 
-5. Si el mensaje anterior aparecio en la terminal, estamos en condicones de abrir      el navegador, el de tu preferencia y en la barra de busqueda, escribir lo        siguiente:
+5. Si el mensaje anterior apareció en la terminal, estamos en condiciones de abrir      el navegador, el de tu preferencia y en la barra de búsqueda, escribir lo        siguiente:
    http://localhost:8080
    Eso mostrará la pagina web que hemos creado.
    
