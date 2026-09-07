@@ -1,0 +1,50 @@
+CREATE TABLE Usuario (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    apellido VARCHAR(50) NOT NULL,
+    contacto VARCHAR(150)
+);
+
+CREATE TABLE Animal (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    raza VARCHAR(50),
+    id_dueno BIGINT NOT NULL,
+    precio NUMERIC(10, 2) NOT NULL,
+
+    CONSTRAINT fk_animal_dueno 
+        FOREIGN KEY (id_dueno) REFERENCES Usuario(id) 
+        ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+CREATE TABLE Publicacion (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_animal BIGINT NOT NULL,
+    precio NUMERIC(10, 2) NOT NULL,
+    id_vendedor BIGINT NOT NULL,
+
+    CONSTRAINT fk_pub_animal 
+        FOREIGN KEY (id_animal) REFERENCES Animal(id) 
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_pub_vendedor 
+        FOREIGN KEY (id_vendedor) REFERENCES Usuario(id) 
+        ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+CREATE TABLE Venta (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_publicacion BIGINT NOT NULL,
+    id_vendedor BIGINT NOT NULL,
+    id_comprador BIGINT NOT NULL,
+    fecha TIMESTAMPTZ DEFAULT NOW(),
+
+    CONSTRAINT fk_venta_pub 
+        FOREIGN KEY (id_publicacion) REFERENCES Publicacion(id) 
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_venta_vendedor 
+        FOREIGN KEY (id_vendedor) REFERENCES Usuario(id) 
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_venta_comprador 
+        FOREIGN KEY (id_comprador) REFERENCES Usuario(id) 
+        ON DELETE RESTRICT ON UPDATE CASCADE
+);
