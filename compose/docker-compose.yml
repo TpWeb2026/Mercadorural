@@ -1,0 +1,14 @@
+services:
+  database:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: tp2
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secretoclave
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
