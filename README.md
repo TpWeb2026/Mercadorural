@@ -36,8 +36,9 @@ Mercadorural/
 
 1. [Go Compiler](https://go.dev/dl/)
 2. [Docker](https://docs.docker.com/get-docker/)
-3. Docker-Compose
-4. Make
+3. Sqlc generate
+4. Docker-Compose
+5. Make
 
 ## Instalacion
 
@@ -47,6 +48,8 @@ Mercadorural/
    ```
    git clone https://github.com/TpWeb2026/Mercadorural.git
    ```
+   Si ya lo tenes clonado de la entrega pasada, solo queda pararse en esa carpeta y hacer git pull para que traiga todo lo nuevo que se hizo 
+
 
 ## Cómo ejecutar
 
