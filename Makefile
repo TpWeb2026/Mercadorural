@@ -4,48 +4,38 @@ DB_USER=postgres
 DB_NAME=tp2
 SCHEMA_DIR=db/schema
 
-# .PHONY se usa para declarar que las palabras son comandos
-.PHONY: all pre test post clean
+.PHONY: test
+ # eso se usa para evitar que si hay carpetas o archivos llamado test generen conflictos, diciendo que make es un comando y no un archivo
+test:
+# se usa el @ para que no imprima toda la linea, sino lo que esta dentro de echo
 
-all: pre test post
-
-#tareas previas
-pre:
-	@echo "-> Generando codigo Go con sqlc generate..."
-	go run github.com/sqlc-dev/sqlc/cmd/sqlc@latest generate
-	
-	@echo "-> Compilando el proyecto..."
-	go build ./...
-	
-	@echo "-> Limpiando contenedores previos ..."
+# Como primer paso, tenemos que limpiar todo el contenedor
+	@echo "--- 1. Limpiando contenedores y volumenes previos ---"
 	docker compose -f $(COMPOSE_FILE) down -v
-	
-	@echo "-> Iniciando el contenedor de la base de datos PosgreSQL..."
+
+# Como segundo paso, tenemos que generar el codigo go con el comando sqlc generate
+	@echo "--- 2. Generando codigo Go con SQLC ---"
+	sqlc generate
+
+# Como terecer paso, ahora levantamos el contenedor con el comando docker compose up -d (se usa el -d para que no bloquee la consola)
+	@echo "--- 3. Levantando contenedor de PostgreSQL ---"
 	docker compose -f $(COMPOSE_FILE) up -d
-	
+
+# Como cuarto paso, tenemos que esperar a que se levante el postgresql, por eso se usa este comando
 	@echo "-> Levantando la base de datos..."
 	@while ! docker compose -f $(COMPOSE_FILE) exec -T $(DB_CONTAINER) pg_isready -U $(DB_USER) -d $(DB_NAME) > /dev/null 2>&1; do \
 		sleep 2; \
 	done
 	@echo "-> Base de datos: UP"
-	
+
+# Como quinto paso, tenemos que insertar todo el esquema que nos hizo en la base de datos 
 	@echo "-> Insertando esquemas en la base de datos..."
 	@cat $(SCHEMA_DIR)/*.sql | docker compose -f $(COMPOSE_FILE) exec -T $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) > /dev/null
-	@echo "-> Tareas previas finalizadas!"
-	@echo ""
 
-# tests
-test:
-	@echo "Ejecutando TEST"
-	go test -v -count=1 ./db/sqlc/...
-	@echo ""
+# Como sexto paso, ejecutamos el test para ver si esta bien todo lo que hicimos
+	@echo "--- 6. Ejecutando pruebas unitarias ---"
+	go test -v ./...
 
-# tareas posteriores
-post: clean
-
-# limpieza final
-clean:
-	@echo "Limpiando entorno"
-	@echo "-> Deteniendo contenedores y limpiando volumenes"
+# Como septimo paso, limpiamos todo el entorno
+	@echo "--- 7. Limpiando el entorno de Docker ---"
 	docker compose -f $(COMPOSE_FILE) down -v
-	@echo "-> Entorno limpio"
