@@ -1,0 +1,8 @@
+sudo apt install docker
+sudo apt install docker-compose
+docker compose up -d
+cat db/schema/*.sql | docker compose -f compose/docker-compose.yml exec -T database psql -U postgres -d tp2
+docker compose -f compose/docker-compose.yml exec database psql -U postgres -d tp2 -c "\dt"
+
+go mod init
+go get github.com/lib/pq
