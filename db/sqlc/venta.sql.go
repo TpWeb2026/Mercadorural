@@ -35,6 +35,16 @@ func (q *Queries) CreateVenta(ctx context.Context, arg CreateVentaParams) (Ventu
 	return i, err
 }
 
+const deleteVenta = `-- name: DeleteVenta :exec
+DELETE FROM Venta
+WHERE id = $1
+`
+
+func (q *Queries) DeleteVenta(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteVenta, id)
+	return err
+}
+
 const getVenta = `-- name: GetVenta :one
 SELECT id, id_publicacion, id_vendedor, id_comprador, fecha 
 FROM Venta 
@@ -136,4 +146,38 @@ func (q *Queries) ListVentasConDetalle(ctx context.Context) ([]ListVentasConDeta
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateVenta = `-- name: UpdateVenta :one
+UPDATE Venta
+SET id_publicacion = $2,
+    id_vendedor = $3,
+    id_comprador = $4
+WHERE id = $1
+RETURNING id, id_publicacion, id_vendedor, id_comprador, fecha
+`
+
+type UpdateVentaParams struct {
+	ID            int64 `json:"id"`
+	IDPublicacion int64 `json:"id_publicacion"`
+	IDVendedor    int64 `json:"id_vendedor"`
+	IDComprador   int64 `json:"id_comprador"`
+}
+
+func (q *Queries) UpdateVenta(ctx context.Context, arg UpdateVentaParams) (Ventum, error) {
+	row := q.db.QueryRowContext(ctx, updateVenta,
+		arg.ID,
+		arg.IDPublicacion,
+		arg.IDVendedor,
+		arg.IDComprador,
+	)
+	var i Ventum
+	err := row.Scan(
+		&i.ID,
+		&i.IDPublicacion,
+		&i.IDVendedor,
+		&i.IDComprador,
+		&i.Fecha,
+	)
+	return i, err
 }

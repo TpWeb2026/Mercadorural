@@ -11,14 +11,17 @@ test:
 
 # Como primer paso, tenemos que limpiar todo el contenedor
 	@echo "--- 1. Limpiando contenedores y volumenes previos ---"
+
 	docker compose -f $(COMPOSE_FILE) down -v
 
 # Como segundo paso, tenemos que generar el codigo go con el comando sqlc generate
 	@echo "--- 2. Generando codigo Go con SQLC ---"
+
 	sqlc generate
 
 # Como terecer paso, ahora levantamos el contenedor con el comando docker compose up -d (se usa el -d para que no bloquee la consola)
 	@echo "--- 3. Levantando contenedor de PostgreSQL ---"
+
 	docker compose -f $(COMPOSE_FILE) up -d
 
 # Como cuarto paso, tenemos que esperar a que se levante el postgresql, por eso se usa este comando
@@ -34,8 +37,10 @@ test:
 
 # Como sexto paso, ejecutamos el test para ver si esta bien todo lo que hicimos
 	@echo "--- 6. Ejecutando pruebas unitarias ---"
-	go test -v ./...
+
+	go test -v -count=1 ./db/sqlc/...
 
 # Como septimo paso, limpiamos todo el entorno
 	@echo "--- 7. Limpiando el entorno de Docker ---"
+
 	docker compose -f $(COMPOSE_FILE) down -v

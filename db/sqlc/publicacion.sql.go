@@ -33,6 +33,16 @@ func (q *Queries) CreatePublicacion(ctx context.Context, arg CreatePublicacionPa
 	return i, err
 }
 
+const deletePublicacion = `-- name: DeletePublicacion :exec
+DELETE FROM Publicacion
+WHERE id = $1
+`
+
+func (q *Queries) DeletePublicacion(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deletePublicacion, id)
+	return err
+}
+
 const getPublicacion = `-- name: GetPublicacion :one
 SELECT id, id_animal, precio, id_vendedor 
 FROM Publicacion 
@@ -83,4 +93,37 @@ func (q *Queries) ListPublicacionesActivas(ctx context.Context) ([]Publicacion, 
 		return nil, err
 	}
 	return items, nil
+}
+
+const updatePublicacion = `-- name: UpdatePublicacion :one
+UPDATE Publicacion
+SET id_animal = $2,
+    precio = $3,
+    id_vendedor = $4
+WHERE id = $1
+RETURNING id, id_animal, precio, id_vendedor
+`
+
+type UpdatePublicacionParams struct {
+	ID         int64  `json:"id"`
+	IDAnimal   int64  `json:"id_animal"`
+	Precio     string `json:"precio"`
+	IDVendedor int64  `json:"id_vendedor"`
+}
+
+func (q *Queries) UpdatePublicacion(ctx context.Context, arg UpdatePublicacionParams) (Publicacion, error) {
+	row := q.db.QueryRowContext(ctx, updatePublicacion,
+		arg.ID,
+		arg.IDAnimal,
+		arg.Precio,
+		arg.IDVendedor,
+	)
+	var i Publicacion
+	err := row.Scan(
+		&i.ID,
+		&i.IDAnimal,
+		&i.Precio,
+		&i.IDVendedor,
+	)
+	return i, err
 }
