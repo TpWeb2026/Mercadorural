@@ -11,7 +11,6 @@ import (
 )
 
 const createVenta = `-- name: CreateVenta :one
-
 INSERT INTO Venta (id_publicacion, id_vendedor, id_comprador)
 VALUES ($1, $2, $3)
 RETURNING id, id_publicacion, id_vendedor, id_comprador, fecha
@@ -23,9 +22,6 @@ type CreateVentaParams struct {
 	IDComprador   int64 `json:"id_comprador"`
 }
 
-// ==========================================
-// VENTA
-// ==========================================
 func (q *Queries) CreateVenta(ctx context.Context, arg CreateVentaParams) (Ventum, error) {
 	row := q.db.QueryRowContext(ctx, createVenta, arg.IDPublicacion, arg.IDVendedor, arg.IDComprador)
 	var i Ventum

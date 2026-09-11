@@ -10,7 +10,6 @@ import (
 )
 
 const createPublicacion = `-- name: CreatePublicacion :one
-
 INSERT INTO Publicacion (id_animal, precio, id_vendedor)
 VALUES ($1, $2, $3)
 RETURNING id, id_animal, precio, id_vendedor
@@ -22,9 +21,6 @@ type CreatePublicacionParams struct {
 	IDVendedor int64  `json:"id_vendedor"`
 }
 
-// ==========================================
-// PUBLICACION
-// ==========================================
 func (q *Queries) CreatePublicacion(ctx context.Context, arg CreatePublicacionParams) (Publicacion, error) {
 	row := q.db.QueryRowContext(ctx, createPublicacion, arg.IDAnimal, arg.Precio, arg.IDVendedor)
 	var i Publicacion

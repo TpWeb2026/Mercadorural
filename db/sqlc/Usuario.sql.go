@@ -11,7 +11,6 @@ import (
 )
 
 const createUsuario = `-- name: CreateUsuario :one
-
 INSERT INTO Usuario (nombre, apellido, contacto)
 VALUES ($1, $2, $3)
 RETURNING id, nombre, apellido, contacto
@@ -23,9 +22,6 @@ type CreateUsuarioParams struct {
 	Contacto sql.NullString `json:"contacto"`
 }
 
-// ==========================================
-// USUARIO
-// ==========================================
 func (q *Queries) CreateUsuario(ctx context.Context, arg CreateUsuarioParams) (Usuario, error) {
 	row := q.db.QueryRowContext(ctx, createUsuario, arg.Nombre, arg.Apellido, arg.Contacto)
 	var i Usuario
@@ -38,6 +34,16 @@ func (q *Queries) CreateUsuario(ctx context.Context, arg CreateUsuarioParams) (U
 	return i, err
 }
 
+const deleteUsuario = `-- name: DeleteUsuario :exec
+DELETE FROM Usuario
+WHERE id = $1
+`
+
+func (q *Queries) DeleteUsuario(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteUsuario, id)
+	return err
+}
+
 const getUsuario = `-- name: GetUsuario :one
 SELECT id, nombre, apellido, contacto 
 FROM Usuario 
@@ -46,6 +52,73 @@ WHERE id = $1 LIMIT 1
 
 func (q *Queries) GetUsuario(ctx context.Context, id int64) (Usuario, error) {
 	row := q.db.QueryRowContext(ctx, getUsuario, id)
+	var i Usuario
+	err := row.Scan(
+		&i.ID,
+		&i.Nombre,
+		&i.Apellido,
+		&i.Contacto,
+	)
+	return i, err
+}
+
+const listUsuarios = `-- name: ListUsuarios :many
+SELECT id, nombre, apellido, contacto 
+FROM Usuario 
+ORDER BY id
+`
+
+func (q *Queries) ListUsuarios(ctx context.Context) ([]Usuario, error) {
+	rows, err := q.db.QueryContext(ctx, listUsuarios)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Usuario
+	for rows.Next() {
+		var i Usuario
+		if err := rows.Scan(
+			&i.ID,
+			&i.Nombre,
+			&i.Apellido,
+			&i.Contacto,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateUsuario = `-- name: UpdateUsuario :one
+UPDATE Usuario
+SET nombre = $2,
+    apellido = $3,
+    contacto = $4
+WHERE id = $1
+RETURNING id, nombre, apellido, contacto
+`
+
+type UpdateUsuarioParams struct {
+	ID       int64          `json:"id"`
+	Nombre   string         `json:"nombre"`
+	Apellido string         `json:"apellido"`
+	Contacto sql.NullString `json:"contacto"`
+}
+
+func (q *Queries) UpdateUsuario(ctx context.Context, arg UpdateUsuarioParams) (Usuario, error) {
+	row := q.db.QueryRowContext(ctx, updateUsuario,
+		arg.ID,
+		arg.Nombre,
+		arg.Apellido,
+		arg.Contacto,
+	)
 	var i Usuario
 	err := row.Scan(
 		&i.ID,

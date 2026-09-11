@@ -11,7 +11,6 @@ import (
 )
 
 const createAnimal = `-- name: CreateAnimal :one
-
 INSERT INTO Animal (nombre, raza, id_dueno, precio)
 VALUES ($1, $2, $3, $4)
 RETURNING id, nombre, raza, id_dueno, precio
@@ -24,9 +23,6 @@ type CreateAnimalParams struct {
 	Precio  string         `json:"precio"`
 }
 
-// ==========================================
-// ANIMAL
-// ==========================================
 func (q *Queries) CreateAnimal(ctx context.Context, arg CreateAnimalParams) (Animal, error) {
 	row := q.db.QueryRowContext(ctx, createAnimal,
 		arg.Nombre,
@@ -43,6 +39,16 @@ func (q *Queries) CreateAnimal(ctx context.Context, arg CreateAnimalParams) (Ani
 		&i.Precio,
 	)
 	return i, err
+}
+
+const deleteAnimal = `-- name: DeleteAnimal :exec
+DELETE FROM Animal
+WHERE id = $1
+`
+
+func (q *Queries) DeleteAnimal(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteAnimal, id)
+	return err
 }
 
 const getAnimal = `-- name: GetAnimal :one
@@ -62,6 +68,41 @@ func (q *Queries) GetAnimal(ctx context.Context, id int64) (Animal, error) {
 		&i.Precio,
 	)
 	return i, err
+}
+
+const listAnimales = `-- name: ListAnimales :many
+SELECT id, nombre, raza, id_dueno, precio 
+FROM Animal 
+ORDER BY id
+`
+
+func (q *Queries) ListAnimales(ctx context.Context) ([]Animal, error) {
+	rows, err := q.db.QueryContext(ctx, listAnimales)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Animal
+	for rows.Next() {
+		var i Animal
+		if err := rows.Scan(
+			&i.ID,
+			&i.Nombre,
+			&i.Raza,
+			&i.IDDueno,
+			&i.Precio,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listAnimalesByDueno = `-- name: ListAnimalesByDueno :many
@@ -97,4 +138,41 @@ func (q *Queries) ListAnimalesByDueno(ctx context.Context, idDueno int64) ([]Ani
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateAnimal = `-- name: UpdateAnimal :one
+UPDATE Animal
+SET nombre = $2,
+    raza = $3,
+    id_dueno = $4,
+    precio = $5
+WHERE id = $1
+RETURNING id, nombre, raza, id_dueno, precio
+`
+
+type UpdateAnimalParams struct {
+	ID      int64          `json:"id"`
+	Nombre  string         `json:"nombre"`
+	Raza    sql.NullString `json:"raza"`
+	IDDueno int64          `json:"id_dueno"`
+	Precio  string         `json:"precio"`
+}
+
+func (q *Queries) UpdateAnimal(ctx context.Context, arg UpdateAnimalParams) (Animal, error) {
+	row := q.db.QueryRowContext(ctx, updateAnimal,
+		arg.ID,
+		arg.Nombre,
+		arg.Raza,
+		arg.IDDueno,
+		arg.Precio,
+	)
+	var i Animal
+	err := row.Scan(
+		&i.ID,
+		&i.Nombre,
+		&i.Raza,
+		&i.IDDueno,
+		&i.Precio,
+	)
+	return i, err
 }
