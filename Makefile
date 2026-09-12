@@ -14,7 +14,8 @@ test:
 # Como primer paso, tenemos que limpiar todo el contenedor
 	@echo "--- Limpiando contenedores y volumenes previos ---"
 
-
+	docker compose -f $(COMPOSE_FILE) down -v
+	
 # Como segundo paso, tenemos que generar el codigo go con el comando sqlc generate
 	@echo "--- Generando codigo Go con SQLC ---"
 
