@@ -62,29 +62,9 @@ Mercadorural/
 2. Una vez ya ubicados en la carpeta, tenemos que ejecutar el siguiente comando:
 
    ```
-   go run main.go
+   make test
    ```
-
-   Si todo funciona bien, en la terminal, mostrara el mensaje:  "Servidor escuchando en <http://localhost:8080>"
-
-3. Abrir el Navegador, en la direccion local:
-
-   ```
-   http://localhost:8080
-   ```
-
-4. Para terminar la ejecucion del servidor, usar la combinacion de teclas CTRL + C en la terminal.
-
-## Cómo ejecutar Tests
-
-   1. Ubicarnos en la carpeta del proyecto.
-
-      ```
-      cd Mercadorural
-      ```
-
-   2. Ejecutar el script de deploy
-
-      ```
-      make
-      ```
+   Con ese comando, se ejecuta el archivo MakeFile, donde en el mismo se encuentra toda la automatizacion
+   para limpiar el contendor, generar el codigo go con sqlc generate, levantar el docker, esperar a que se 
+   levante la base de datos, llamar a la funcion para hacer todos los test, una vez terminado todos los test,
+   da de baja la base de datos y limpia los contenedores
