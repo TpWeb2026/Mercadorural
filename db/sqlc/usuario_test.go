@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// Con esta hacemos el crear el usuario
 func TestCreateUsuario(t *testing.T) {
 	ctx := context.Background()
 
@@ -19,10 +20,10 @@ func TestCreateUsuario(t *testing.T) {
 		},
 	}
 
-	// CREATE
+	// Creamos el usuario
 	usuario, err := testQueries.CreateUsuario(ctx, arg)
 
-	// CREATE Assert
+	// Chequemos que el usuario este creado correctamente
 	if err != nil {
 		t.Fatalf("Fallo al crear Usuario: %v", err)
 	}
@@ -50,6 +51,7 @@ func TestCreateUsuario(t *testing.T) {
 	}
 }
 
+// Con esta funcion chequeamos el get
 func TestGetUsuario(t *testing.T) {
 	ctx := context.Background()
 
@@ -67,6 +69,7 @@ func TestGetUsuario(t *testing.T) {
 		t.Fatalf("Fallo al crear el ussuario inicial: %v", err)
 	}
 
+	//lo que hace esta funcion es asegurarse de que cuando termine el test, borre lo que esta creando, incluso si es test falla, lo borra igual
 	t.Cleanup(func() {
 		testDB.ExecContext(ctx, "DELETE FROM Usuario WHERE id = $1", nuevoUsuario.ID)
 	})
@@ -86,6 +89,7 @@ func TestGetUsuario(t *testing.T) {
 	}
 }
 
+// Con esta funcion actualizacion un usuario
 func TestUpdateUsuario(t *testing.T) {
 	ctx := context.Background()
 
@@ -129,6 +133,7 @@ func TestUpdateUsuario(t *testing.T) {
 	}
 }
 
+// con esta funcion eliminamos un usuario
 func TestDeleteUsuario(t *testing.T) {
 	ctx := context.Background()
 
