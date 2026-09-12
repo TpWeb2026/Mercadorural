@@ -6,6 +6,8 @@ SCHEMA_DIR=db/schema
 
 .PHONY: test
  # eso se usa para evitar que si hay carpetas o archivos llamado test generen conflictos, diciendo que make es un comando y no un archivo
+
+ #se crea la etiqueta test, para que cuando queramos ejecutar make test, se ejecute solo la etiqueta que se llama test, o sea solo esta
 test:
 # se usa el @ para que no imprima toda la linea, sino lo que esta dentro de echo
 
