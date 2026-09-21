@@ -22,9 +22,16 @@ func main() {
 	if credenciales == "" {
 		log.Fatal("Error la variable DB_DSN no esta configurada")
 	}
-	conexion, err := sql.Open("postgres",credenciales)
-	if err
-
+	//establecemos conexion con la DB
+	conexion, errDB := sql.Open("postgres", credenciales)
+	if err != nil {
+		log.Fatal("Error al abrir la conexion", errDB)
+	}
+	errDB = conexion.Ping()
+	if errDB != nil {
+		log.Fatal("Error conectando ala base de datos", errDB)
+	}
+	fmt.Println("Conexion ala base de datos exitosa")
 
 	//Defino la direccion estatica
 	// con el FileServer ya se contemplan las rutas inexistentes por lo cual al ingresar a una ruta que no existe devuelve 404 page not found
@@ -42,7 +49,7 @@ func main() {
 	fmt.Printf("Servidor escuchando en http://localhost%s\n", port)
 
 	// Inicia el servidor HTTP
-	err := http.ListenAndServe(port, nil) // sirve para arrancar un servidor web en el puerto especificado y manejar las peticiones entrantes. El segundo parámetro es nil porque no estoy usando un mux personalizado, sino el predeterminado.
+	err = http.ListenAndServe(port, nil) // sirve para arrancar un servidor web en el puerto especificado y manejar las peticiones entrantes. El segundo parámetro es nil porque no estoy usando un mux personalizado, sino el predeterminado.
 	if err != nil {
 		fmt.Printf("Error al iniciar el servidor: %s\n", err)
 	}
