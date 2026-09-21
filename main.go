@@ -1,12 +1,31 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	"log"
 	"net/http" // es lo que me permite crear un servidor web y manejar peticiones HTTP
-	
+	"os"
+
+	_ "github.com/lib/pq" //driver de postgres
 )
 
 func main() {
+	//tp3 ejercicio 1, establecer conexion con la DB
+	// godotenv.Load() lee tu archivo .env y mete esos datos ocultos en el sistema operativo
+	err := godotenv.load()
+	if err != nil {
+		log.Println("No se encontro el archivo .env")
+	}
+	// os.Getenv("DB_DSN") busca específicamente el dato guardado bajo la etiqueta "DB_DSN" en el .env
+	credenciales := os.Getenv("DB_DSN")
+	if credenciales == "" {
+		log.Fatal("Error la variable DB_DSN no esta configurada")
+	}
+	conexion, err := sql.Open("postgres",credenciales)
+	if err
+
+
 	//Defino la direccion estatica
 	// con el FileServer ya se contemplan las rutas inexistentes por lo cual al ingresar a una ruta que no existe devuelve 404 page not found
 	// FileServer tambien contempla los Content-Type
