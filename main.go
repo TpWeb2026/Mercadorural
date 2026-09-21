@@ -6,25 +6,34 @@ import (
 	"log"
 	"net/http" // es lo que me permite crear un servidor web y manejar peticiones HTTP
 	"os"
-	"github.com/joho/godotenv" 
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" //driver de postgres
 )
 
 func main() {
 	//tp3 ejercicio 1, establecer conexion con la DB
 	// godotenv.Load() lee tu archivo .env y mete esos datos ocultos en el sistema operativo
-	err := godotenv.load()
+	err := godotenv.Load()
 	if err != nil {
 		log.Println("No se encontro el archivo .env")
 	}
-	// os.Getenv("DB_DSN") busca específicamente el dato guardado bajo la etiqueta "DB_DSN" en el .env
-	credenciales := os.Getenv("DB_DSN")
-	if credenciales == "" {
+	/*// os.Getenv("DB_DSN") busca específicamente el dato guardado bajo la etiqueta "DB_DSN" en el .env
+	credenciales := os.Getenv("DB_DSN")*/
+
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	dbname := os.Getenv("DB_NAME")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+
+	if dsn == "" {
 		log.Fatal("Error la variable DB_DSN no esta configurada")
 	}
 	//establecemos conexion con la DB
-	conexion, errDB := sql.Open("postgres", credenciales)
+	conexion, errDB := sql.Open("postgres", dsn)
 	if err != nil {
 		log.Fatal("Error al abrir la conexion", errDB)
 	}
@@ -46,7 +55,7 @@ func main() {
 	http.Handle("/", fs)
 
 	// Define el puerto y muestra un mensaje
-	port := ":8080"
+	port = ":8080"
 	fmt.Printf("Servidor escuchando en http://localhost%s\n", port)
 
 	// Inicia el servidor HTTP
