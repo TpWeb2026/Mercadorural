@@ -1,15 +1,29 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http" // es lo que me permite crear un servidor web y manejar peticiones HTTP
 	"os"
+	db "tp2/db/sqlc"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" //driver de postgres
 )
+
+func MetodoPostAnimal(w http.ResponseWriter, r *http.Request) {
+	var NuevoAnimal db.Animal
+
+	err := json.NewDecoder(r.Body).Decode(&NuevoAnimal)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+}
 
 func main() {
 	//tp3 ejercicio 1, establecer conexion con la DB
@@ -42,6 +56,9 @@ func main() {
 		log.Fatal("Error conectando ala base de datos", errDB)
 	}
 	fmt.Println("Conexion ala base de datos exitosa")
+
+	queries := db.New(conexion)
+	ctx := context.Background()
 
 	//Defino la direccion estatica
 	// con el FileServer ya se contemplan las rutas inexistentes por lo cual al ingresar a una ruta que no existe devuelve 404 page not found
