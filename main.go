@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http" // es lo que me permite crear un servidor web y manejar peticiones HTTP
 	"os"
+	"github.com/joho/godotenv" 
 
 	_ "github.com/lib/pq" //driver de postgres
 )
