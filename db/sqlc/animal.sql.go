@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createAnimal = `-- name: CreateAnimal :one
@@ -17,10 +16,10 @@ RETURNING id, nombre, raza, id_dueno, precio
 `
 
 type CreateAnimalParams struct {
-	Nombre  string         `json:"nombre"`
-	Raza    sql.NullString `json:"raza"`
-	IDDueno int64          `json:"id_dueno"`
-	Precio  string         `json:"precio"`
+	Nombre  string `json:"nombre"`
+	Raza    string `json:"raza"`
+	IDDueno int64  `json:"id_dueno"`
+	Precio  string `json:"precio"`
 }
 
 func (q *Queries) CreateAnimal(ctx context.Context, arg CreateAnimalParams) (Animal, error) {
@@ -151,11 +150,11 @@ RETURNING id, nombre, raza, id_dueno, precio
 `
 
 type UpdateAnimalParams struct {
-	ID      int64          `json:"id"`
-	Nombre  string         `json:"nombre"`
-	Raza    sql.NullString `json:"raza"`
-	IDDueno int64          `json:"id_dueno"`
-	Precio  string         `json:"precio"`
+	ID      int64  `json:"id"`
+	Nombre  string `json:"nombre"`
+	Raza    string `json:"raza"`
+	IDDueno int64  `json:"id_dueno"`
+	Precio  string `json:"precio"`
 }
 
 func (q *Queries) UpdateAnimal(ctx context.Context, arg UpdateAnimalParams) (Animal, error) {

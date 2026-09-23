@@ -57,8 +57,7 @@ func main() {
 	}
 	fmt.Println("Conexion ala base de datos exitosa")
 
-	queries := db.New(conexion)
-	ctx := context.Background()
+	
 
 	//Defino la direccion estatica
 	// con el FileServer ya se contemplan las rutas inexistentes por lo cual al ingresar a una ruta que no existe devuelve 404 page not found
@@ -70,6 +69,17 @@ func main() {
 
 	// Registramos que se muestre la pagina cada vez que se accede ala raiz
 	http.Handle("/", fs)
+
+	//Aca seguimos el main de la parte 3 del tp
+
+	//esta variable sirve para poder usar los metodos que me creo sqlc para poder comunicarme con la base de datos
+	metodoBD := db.New(conexion)
+	ctx := context.Background()
+
+	http.HandleFunc("/animales",)
+	http.HandleFunc("/usuario", )
+	http.HandleFunc("/publicacion", )
+	http.HandleFunc("/venta",)
 
 	// Define el puerto y muestra un mensaje
 	port = ":8080"

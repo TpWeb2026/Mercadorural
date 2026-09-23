@@ -33,7 +33,7 @@ func crearUsuarioYAnimalPrevios(t *testing.T, ctx context.Context) (Usuario, Ani
 
 	animalNuevo := CreateAnimalParams{
 		Nombre:  "Rex",
-		Raza:    sql.NullString{String: "Pastor Aleman", Valid: true},
+		Raza:    "pastor aleman",
 		IDDueno: usuario.ID,
 		Precio:  "45000.00",
 	}

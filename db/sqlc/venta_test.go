@@ -45,7 +45,7 @@ func crearEntidadesPreviasParaVenta(t *testing.T, ctx context.Context) (Usuario,
 	// Creamos un Animal asociado al Vendedor
 	creamosAnimal := CreateAnimalParams{
 		Nombre:  "Tormenta",
-		Raza:    sql.NullString{String: "Caballo Criollo", Valid: true},
+		Raza:    "queonda",
 		IDDueno: vendedor.ID, // aca sacamos el id que tiene el vendedor que creamos anteriomente
 		Precio:  "120000.00",
 	}

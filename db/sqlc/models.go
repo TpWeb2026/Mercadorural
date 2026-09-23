@@ -9,11 +9,11 @@ import (
 )
 
 type Animal struct {
-	ID      int64          `json:"id"`
-	Nombre  string         `json:"nombre"`
-	Raza    sql.NullString `json:"raza"`
-	IDDueno int64          `json:"id_dueno"`
-	Precio  string         `json:"precio"`
+	ID      int64  `json:"id"`
+	Nombre  string `json:"nombre"`
+	Raza    string `json:"raza"`
+	IDDueno int64  `json:"id_dueno"`
+	Precio  string `json:"precio"`
 }
 
 type Publicacion struct {

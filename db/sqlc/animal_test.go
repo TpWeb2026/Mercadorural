@@ -23,11 +23,8 @@ func TestCreateAnimal(t *testing.T) {
 	})
 
 	createArg := CreateAnimalParams{
-		Nombre: "Bartolito",
-		Raza: sql.NullString{
-			String: "Gallo",
-			Valid:  true,
-		},
+		Nombre:  "Bartolito",
+		Raza:    "mitre",
 		IDDueno: dueno.ID,
 		Precio:  "100.00",
 	}
@@ -46,7 +43,7 @@ func TestCreateAnimal(t *testing.T) {
 	}
 
 	if nuevoAnimal.Raza != createArg.Raza {
-		t.Errorf("Se esperaba: Raza %s, se obtuvo %s", createArg.Raza.String, nuevoAnimal.Raza.String)
+		t.Errorf("Se esperaba: Raza %s, se obtuvo %s", createArg.Raza, nuevoAnimal.Raza)
 	}
 
 	if nuevoAnimal.IDDueno != createArg.IDDueno {
@@ -75,11 +72,8 @@ func TestGetAnimal(t *testing.T) {
 	})
 
 	createArg := CreateAnimalParams{
-		Nombre: "Bartolito",
-		Raza: sql.NullString{
-			String: "Gallo",
-			Valid:  true,
-		},
+		Nombre:  "Bartolito",
+		Raza:    "calos",
 		IDDueno: dueno.ID,
 		Precio:  "100.00",
 	}
@@ -99,7 +93,7 @@ func TestGetAnimal(t *testing.T) {
 	}
 
 	if fetchedAnimal.Raza != nuevoAnimal.Raza {
-		t.Errorf("Se esperaba: Raza %s, se obtuvo %s", nuevoAnimal.Raza.String, fetchedAnimal.Raza.String)
+		t.Errorf("Se esperaba: Raza %s, se obtuvo %s", nuevoAnimal.Raza, fetchedAnimal.Raza)
 	}
 
 	if fetchedAnimal.IDDueno != nuevoAnimal.IDDueno {
@@ -131,7 +125,7 @@ func TestUpdateAnimal(t *testing.T) {
 
 	animalArg := CreateAnimalParams{
 		Nombre:  "Firulais",
-		Raza:    sql.NullString{String: "Cuzco", Valid: true},
+		Raza:    "alamadre",
 		IDDueno: dueno.ID,
 		Precio:  "1500.00",
 	}
@@ -142,9 +136,9 @@ func TestUpdateAnimal(t *testing.T) {
 
 	updateArg := UpdateAnimalParams{
 		ID:      animalBase.ID,
-		Nombre:  animalBase.Nombre,                              // se mantiene el nombre
-		Raza:    sql.NullString{String: "Ovejero", Valid: true}, // no mas Sabrositos
-		IDDueno: animalBase.IDDueno,                             // se mantiene el dueño
+		Nombre:  animalBase.Nombre,  // se mantiene el nombre
+		Raza:    "elvi",             // no mas Sabrositos
+		IDDueno: animalBase.IDDueno, // se mantiene el dueño
 		Precio:  "2500.00",
 	}
 
@@ -154,8 +148,8 @@ func TestUpdateAnimal(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Fallo al actualizar el animal: %v", err)
 	}
-	if animalActualizado.Raza.String != updateArg.Raza.String {
-		t.Errorf("Esperado: Raza %s, obtenido: %s", updateArg.Raza.String, animalActualizado.Raza.String)
+	if animalActualizado.Raza != updateArg.Raza {
+		t.Errorf("Esperado: Raza %s, obtenido: %s", updateArg.Raza, animalActualizado.Raza)
 	}
 	if animalActualizado.Precio != updateArg.Precio {
 		t.Errorf("Esperado: Precio %s, obtenido: %s", updateArg.Precio, animalActualizado.Precio)
