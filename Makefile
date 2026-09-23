@@ -28,9 +28,10 @@ test:
 
 # Como cuarto paso, tenemos que esperar a que se levante el postgresql, por eso se usa este comando
 	@echo "-> Levantando la base de datos..."
-	@while ! docker compose -f $(COMPOSE_FILE) exec -T $(DB_CONTAINER) pg_isready -U $(DB_USER) -d $(DB_NAME) > /dev/null 2>&1; do \
-		sleep 2; \
-	done
+	
+	@while ! docker compose -f $(COMPOSE_FILE) exec -T $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) -c "SELECT 1" > /dev/null 2>&1; do \
+        sleep 1; \
+    done
 	@echo "-> Base de datos: UP"
 
 # Como quinto paso, tenemos que insertar todo el esquema que nos hizo en la base de datos 
