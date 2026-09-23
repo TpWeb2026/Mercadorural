@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -57,8 +56,6 @@ func main() {
 	}
 	fmt.Println("Conexion ala base de datos exitosa")
 
-	
-
 	//Defino la direccion estatica
 	// con el FileServer ya se contemplan las rutas inexistentes por lo cual al ingresar a una ruta que no existe devuelve 404 page not found
 	// FileServer tambien contempla los Content-Type
@@ -74,12 +71,13 @@ func main() {
 
 	//esta variable sirve para poder usar los metodos que me creo sqlc para poder comunicarme con la base de datos
 	metodoBD := db.New(conexion)
-	ctx := context.Background()
 
-	http.HandleFunc("/animales",)
-	http.HandleFunc("/usuario", )
-	http.HandleFunc("/publicacion", )
-	http.HandleFunc("/venta",)
+	manejadorDeAnimales := &estructuraAnimal{Consultas: metodoBD}
+
+	http.HandleFunc("/animales/", manejadorDeAnimales.CRUDanimal) // tenemos problemas aca, no se como llamar a la funcion que cree
+	http.HandleFunc("/usuario")
+	http.HandleFunc("/publicacion")
+	http.HandleFunc("/venta")
 
 	// Define el puerto y muestra un mensaje
 	port = ":8080"
