@@ -1,9 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
-	"net/http"
-	"strconv" //este es para poder sacar el id
+	"net/http" //este es para poder sacar el id
+	"strconv"
 	"strings"
 	db "tp2/db/sqlc"
 )
@@ -68,6 +69,7 @@ func (h *estructuraAnimal) listaDeAnimales(w http.ResponseWriter, r *http.Reques
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 }
 
 // ahora creamos la otra funcion que lo que hace es hacer el post
@@ -94,10 +96,18 @@ func (h *estructuraAnimal) agregarAnimal(w http.ResponseWriter, r *http.Request)
 	//validamos que el id dueño no sea negativo
 	if NuevoAnimal.IDDueno < 0 {
 		http.Error(w, "El campo de id dueño es menos a 0", 400)
+		return
 	}
 	//validamos que el precio sea menor a 0
 	if NuevoAnimal.Precio == "" { // se hace asi porque sqlc genera los de tipo numeric como string
 		http.Error(w, "El campo de precio es vacio", 400)
+		return
+	}
+
+	//Validamos que el dueño exista
+	if _, err := h.Consultas.GetUsuario(r.Context(), NuevoAnimal.IDDueno); err != nil {
+		http.Error(w, "El Dueño no existe", 400)
+		return
 	}
 
 	// mapeamos los datos a los parametros que genero sqlc
@@ -127,33 +137,39 @@ func (h *estructuraAnimal) agregarAnimal(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(animalnuevo)
 }
 
-// la funcion que dado un id pasado por la url, lo busque y se fije si existe en la base de datos ese animal o no
 func (h *estructuraAnimal) getAnimalId(w http.ResponseWriter, r *http.Request) {
-
-	cantidad := strings.Split(r.URL.Path, "/")
-
-	idUsuario, err := strconv.Atoi(cantidad[2]) // me quedo con lo que tengo en el ultimo path animales/2
-
-	if err != nil { // vemos si no da error
-		http.Error(w, "No se puede sacar el id", 400)
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		http.Error(w, "Falta el parámetro 'id'", 400)
 		return
 	}
 
-	obtenerLista, err := h.Consultas.ListAnimales(r.Context()) // r.context(), es para conectar seguro con la base de datos, si el usuario al final cencela eso, se cae la consulta de la base de datos
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "NO hay una lista valida"+err.Error(), 400)
+		http.Error(w, "El id debe ser un número válido", 400)
 		return
 	}
-	//buscamos en esa lista si existe el id, range entrega dos cosas, el indice como primer parametro y el segund es el elemento
-	for _, i := range obtenerLista {
-		if i.ID == int64(idUsuario) { //lo convierto a int64 para que go no me marque error de compilacion
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(i) // devolvemos en formato json el usuario que se encontro
+
+	animalObtenido, err := h.Consultas.GetAnimal(r.Context(), int64(id))
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "El animal no existe", 404)
 			return
 		}
+		http.Error(w, "Error del servidor", 500)
+		return
 	}
-	//es porque no lo encotro
-	http.Error(w, "No se encontro el animal"+err.Error(), 404)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	/*
+		if err := json.NewEncoder(w).Encode(animalObtenido); err != nil {
+			// Solo logueamos el error interno, ya que el header HTTP ya fue enviado al cliente
+			// log.Printf("Error serializando JSON de animal: %v", err)
+		}
+	*/
 }
 
 func (h *estructuraAnimal) actualizarAnimalID(w http.ResponseWriter, r *http.Request) {

@@ -73,11 +73,12 @@ func main() {
 	metodoBD := db.New(conexion)
 
 	manejadorDeAnimales := &estructuraAnimal{Consultas: metodoBD} // chequear porque fue que hicimos esto y porque lo llamamos asi en el main
+	manejadorDeUsuarios := &estructuraUsuario{Consultas: metodoBD}
 
-	http.HandleFunc("/animales/", manejadorDeAnimales.CRUDanimal) 
-	http.HandleFunc("/usuario", manejador)
-	http.HandleFunc("/publicacion")
-	http.HandleFunc("/venta")
+	http.HandleFunc("/animales/", manejadorDeAnimales.CRUDanimal)
+	http.HandleFunc("/usuario/", manejadorDeUsuarios.CRUDusuarios)
+	http.HandleFunc("/publicacion", func(w http.ResponseWriter, r *http.Request) {}) //placeholder para que no tire error
+	http.HandleFunc("/venta", func(w http.ResponseWriter, r *http.Request) {})       //placeholder
 
 	// Define el puerto y muestra un mensaje
 	port = ":8080"
