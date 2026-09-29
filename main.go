@@ -72,10 +72,10 @@ func main() {
 	//esta variable sirve para poder usar los metodos que me creo sqlc para poder comunicarme con la base de datos
 	metodoBD := db.New(conexion)
 
-	manejadorDeAnimales := &estructuraAnimal{Consultas: metodoBD}
+	manejadorDeAnimales := &estructuraAnimal{Consultas: metodoBD} // chequear porque fue que hicimos esto y porque lo llamamos asi en el main
 
-	http.HandleFunc("/animales/", manejadorDeAnimales.CRUDanimal) // tenemos problemas aca, no se como llamar a la funcion que cree
-	http.HandleFunc("/usuario")
+	http.HandleFunc("/animales/", manejadorDeAnimales.CRUDanimal) 
+	http.HandleFunc("/usuario", manejador)
 	http.HandleFunc("/publicacion")
 	http.HandleFunc("/venta")
 
