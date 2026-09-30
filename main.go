@@ -52,9 +52,9 @@ func main() {
 	}
 	errDB = conexion.Ping()
 	if errDB != nil {
-		log.Fatal("Error conectando ala base de datos", errDB)
+		log.Fatal("Error conectando a la base de datos ", errDB)
 	}
-	fmt.Println("Conexion ala base de datos exitosa")
+	fmt.Println("Conexion a la base de datos exitosa")
 
 	//Defino la direccion estatica
 	// con el FileServer ya se contemplan las rutas inexistentes por lo cual al ingresar a una ruta que no existe devuelve 404 page not found
