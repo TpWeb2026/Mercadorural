@@ -14,7 +14,7 @@ CREATE TABLE Animal (
 
     CONSTRAINT fk_animal_dueno 
         FOREIGN KEY (id_dueno) REFERENCES Usuario(id) 
-        ON DELETE RESTRICT ON UPDATE CASCADE
+        ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Publicacion (
@@ -28,7 +28,7 @@ CREATE TABLE Publicacion (
         ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_pub_vendedor 
         FOREIGN KEY (id_vendedor) REFERENCES Usuario(id) 
-        ON DELETE RESTRICT ON UPDATE CASCADE
+        ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Venta (
@@ -37,6 +37,8 @@ CREATE TABLE Venta (
     id_vendedor BIGINT NOT NULL,
     id_comprador BIGINT NOT NULL,
     fecha TIMESTAMPTZ DEFAULT NOW(),
+
+    /*  Ver el tema de cuando se elimina un usuario, la publicacion tendria que quedarse, lo mismo con el animal */
 
     CONSTRAINT fk_venta_pub 
         FOREIGN KEY (id_publicacion) REFERENCES Publicacion(id) 
