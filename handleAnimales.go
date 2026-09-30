@@ -197,6 +197,29 @@ func (h *estructuraAnimal) actualizarAnimalID(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	i, err := strconv.Atoi(datos.Precio)
+	if err != nil {
+		http.Error(w, "el precio tiene que ser un valor numerico positivo", http.StatusBadRequest)
+		return
+	}
+	if i < 0 {
+		http.Error(w, "el precio no puede ser negativo", http.StatusBadRequest)
+		return
+	}
+
+	var animal db.Animal
+	animal, err = h.Consultas.GetAnimal(r.Context(), id)
+
+	if err != nil {
+		http.Error(w, "el animal no se encontro", http.StatusBadRequest)
+		return
+	}
+
+	if animal.IDDueno != datos.IDDueno {
+		http.Error(w, "el id dueño no puede cambiar", http.StatusBadRequest)
+		return
+	}
+
 	actualizacionAnimal := db.UpdateAnimalParams{
 		ID:      id, // el id que saque desde la url
 		Nombre:  datos.Nombre,
@@ -255,7 +278,7 @@ func (h *estructuraAnimal) eliminarAnimalID(w http.ResponseWriter, r *http.Reque
 
 	err = h.Consultas.DeleteAnimal(r.Context(), id)
 	if err != nil {
-		http.Error(w, "No se encontro el animal con ese id", http.StatusBadRequest)
+		http.Error(w, "No se pudo borrar el animal", http.StatusInternalServerError)
 		return
 	}
 	// se elimino correctamente

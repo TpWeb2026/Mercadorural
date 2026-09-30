@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http" //este es para poder sacar el id
 	"strings"
@@ -11,6 +12,12 @@ import (
 type estructuraUsuario struct {
 	//en el main en nuestro caso, lo llamamos metodoBD, que seria nuestro *db.Queries
 	Consultas *db.Queries
+}
+
+type dtoUsuario struct {
+	Nombre   string `json:"nombre"`
+	Apellido string `json:"apellido"`
+	Contacto string `json:"contacto"` //string permite recibir strings o null en JSON
 }
 
 func (h *estructuraUsuario) CRUDusuarios(w http.ResponseWriter, r *http.Request) {
@@ -72,8 +79,18 @@ func (h *estructuraUsuario) listaDeUsuario(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (h *estructuraUsuario) getUsuarioId(w http.ResponseWriter, r *http.Request) {
+// Función helper para convertir string a sql.NullString
+func aNullString(s *string) sql.NullString {
+	if s != nil {
+		return sql.NullString{String: *s, Valid: true}
+	}
+	return sql.NullString{Valid: false}
+}
 
+func (h *estructuraUsuario) getUsuarioId(w http.ResponseWriter, r *http.Request) {
+	// Extraer el ID desde la URL
+	partesURL := strings.Split(r.URL.Path, "/") // Ej: ["", "animales", "5"]
+	idStr := partesURL[2]
 }
 
 func (h *estructuraUsuario) agregarUsuario(w http.ResponseWriter, r *http.Request) {
