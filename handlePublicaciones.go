@@ -100,7 +100,7 @@ func (h *estructuraPublicacion) getPublicacionId(w http.ResponseWriter, r *http.
 
 	//encapsulamos la respuesta en formato json y se la mostramos al usuario
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNotFound) // aca se cambia el StatusOk que da el 200 por el 404 como dice el enunciado
 	json.NewEncoder(w).Encode(publicacion)
 }
 
@@ -176,19 +176,89 @@ func (h *estructuraPublicacion) actualizarPublicacionId(w http.ResponseWriter, r
 	json.NewEncoder(w).Encode(nuevaPublicacion)
 }
 
-
-
 func (h *estructuraPublicacion) agregarPublicacion(w http.ResponseWriter, r *http.Request) {
-var nuevaPublicacion db.Publicacion
+	var nuevaPublicacion db.Publicacion
 	//aca lo que hacemos es decodificar lo que nos mando el cliente por la solicitud
 	err := json.NewDecoder(r.Body).Decode(&nuevaPublicacion)
 
 	if err != nil {
-		http.Error(w, err.Error(), 400)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	// validamos que el precio no sea vacio para que el parse no falle al convertir
+	if nuevaPublicacion.Precio == "" {
+		http.Error(w, "el precio es un campo obligatorio", http.StatusBadRequest)
+		return
+	}
+
+	// aca usamos el parseint para pasar el precio a numero, pero chequemos err por si trato de pasar un string ej: "abc" a numero
+	precioconv, err := strconv.ParseInt(nuevaPublicacion.Precio, 10, 64)
+	if err != nil {
+		http.Error(w, "el formato del precio invalido", http.StatusBadRequest)
+		return
+	}
+	// aca validamos reglas de negocio
+	if nuevaPublicacion.IDVendedor < 0 || nuevaPublicacion.IDAnimal < 0 || precioconv < 0 {
+		http.Error(w, "el id vendedor y/o el id animal no pueden ser menor a cero, y el precio no puede ser negativo", http.StatusBadRequest)
+		return
+	}
+	// aca validamos que exista el animal, para no tener inconsistencia en la DB
+	_, err = h.Consultas.GetAnimal(r.Context(), nuevaPublicacion.IDAnimal)
+	if err != nil {
+		http.Error(w, "el animal no existe en la DB", http.StatusBadRequest)
+		return
+	}
+	// aca validamos que exista el usuario, para no tener inconsistencia en la DB
+	_, err = h.Consultas.GetUsuario(r.Context(), nuevaPublicacion.IDVendedor)
+	if err != nil {
+		http.Error(w, "el usuario no existe en la DB", http.StatusBadRequest)
+		return
+	}
+	//armamos los parametros para la creacion de la publicacion
+	params := db.CreatePublicacionParams{
+		IDAnimal:   nuevaPublicacion.IDAnimal,
+		Precio:     nuevaPublicacion.Precio,
+		IDVendedor: nuevaPublicacion.IDVendedor,
+	}
+	// guardamos la publicacion en la DB
+	publicacion, err := h.Consultas.CreatePublicacion(r.Context(), params)
+	if err != nil {
+		http.Error(w, "Error al crear la publicacion en la DB", http.StatusInternalServerError)
+		return
+	}
+
+	// si todo esta bien
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated) // se cambio el codigo de 200 a 201 porque en el enunciado dice devolver codigo 201
+	json.NewEncoder(w).Encode(publicacion)
 }
 func (h *estructuraPublicacion) eliminarPublicacionId(w http.ResponseWriter, r *http.Request) {
+	// 	ACA SUPONGO QUE CON ESTO OBTENGO EL ID
+	partesURL := strings.Split(r.URL.Path, "/")
+	id, err := strconv.ParseInt(partesURL[2], 10, 64)
+	if err != nil {
+		http.Error(w, "El ID debe ser un número válido", http.StatusBadRequest)
+		return
+	}
 
+	// chequeamos si la publicacion existe o no
+	_, err = h.Consultas.GetPublicacion(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "La publicación no existe", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error en el servidor al buscar la publicación: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// aca eliminamos la publicacion usando el metodo delete de publicacion
+	err = h.Consultas.DeletePublicacion(r.Context(), id)
+	if err != nil {
+		http.Error(w, "Error al eliminar la publicacion", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent) // devuelvo estado 204
 }

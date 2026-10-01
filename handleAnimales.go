@@ -20,7 +20,7 @@ func (h *estructuraAnimal) CRUDanimal(w http.ResponseWriter, r *http.Request) {
 	cantidadURl := strings.Split(r.URL.Path, "/") // cuento la cantidad de barras que hay en la r.url.path
 
 	if len(cantidadURl) > 3 { // chequeo que el path solo tenga involucrado 2 path, ejemplo animales/2, si tiene 3 path lo capturamos aca
-		http.Error(w, "Url no permitida", 400)
+		http.Error(w, "Url no permitida", http.StatusBadRequest)
 		return
 	}
 	// Este if lo que chequea es si tiene la longitud para que pueda tener id, si lo tiene, entra y despues se fija que metodo tiene que ejecutar
@@ -33,7 +33,7 @@ func (h *estructuraAnimal) CRUDanimal(w http.ResponseWriter, r *http.Request) {
 		case http.MethodDelete:
 			h.eliminarAnimalID(w, r)
 		default:
-			http.Error(w, "Metodo no aceptado", 405)
+			http.Error(w, "Metodo no aceptado", http.StatusMethodNotAllowed)
 		}
 		return //esto es para que no siga bajando
 	}
@@ -46,7 +46,7 @@ func (h *estructuraAnimal) CRUDanimal(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		h.agregarAnimal(w, r)
 	default:
-		http.Error(w, "Metodo no aceptado", 405)
+		http.Error(w, "Metodo no aceptado", http.StatusMethodNotAllowed)
 	}
 }
 
@@ -80,34 +80,34 @@ func (h *estructuraAnimal) agregarAnimal(w http.ResponseWriter, r *http.Request)
 	err := json.NewDecoder(r.Body).Decode(&NuevoAnimal)
 
 	if err != nil {
-		http.Error(w, err.Error(), 400)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// ACA TENEMOS QUE VALIDAR QUE LOS ATRIBUTOS DEL ANIMAL SEAN VALIDOS, ESTO SERIA LAS REGLAS DE NEGOCIO
 	if NuevoAnimal.Nombre == "" {
-		http.Error(w, "El campo de nombre es vacio", 400)
+		http.Error(w, "El campo de nombre es vacio", http.StatusBadRequest)
 		return
 	}
 	//validamos que la raza no sea vacia
 	if NuevoAnimal.Raza == "" {
-		http.Error(w, "El campo de raza es vacio", 400)
+		http.Error(w, "El campo de raza es vacio", http.StatusBadRequest)
 		return
 	}
 	//validamos que el id dueño no sea negativo
 	if NuevoAnimal.IDDueno < 0 {
-		http.Error(w, "El campo de id dueño es menos a 0", 400)
+		http.Error(w, "El campo de id dueño es menos a 0", http.StatusBadRequest)
 		return
 	}
 	//validamos que el precio sea menor a 0
 	if NuevoAnimal.Precio == "" { // se hace asi porque sqlc genera los de tipo numeric como string
-		http.Error(w, "El campo de precio es vacio", 400)
+		http.Error(w, "El campo de precio es vacio", http.StatusBadRequest)
 		return
 	}
 
 	//Validamos que el dueño exista
 	if _, err := h.Consultas.GetUsuario(r.Context(), NuevoAnimal.IDDueno); err != nil {
-		http.Error(w, "El Dueño no existe", 400)
+		http.Error(w, "El Dueño no existe", http.StatusBadRequest)
 		return
 	}
 
@@ -132,7 +132,7 @@ func (h *estructuraAnimal) agregarAnimal(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 
 	//le notificamos que se creo bien con el codigo 201
-	w.WriteHeader(201)
+	w.WriteHeader(http.StatusCreated)
 
 	// lo devolvemos en formato json
 	json.NewEncoder(w).Encode(animalnuevo)
@@ -155,10 +155,10 @@ func (h *estructuraAnimal) getAnimalId(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "El animal no existe", 404)
+			http.Error(w, "El animal no existe", http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Error del servidor", 500)
+		http.Error(w, "Error del servidor", http.StatusInternalServerError)
 		return
 	}
 
@@ -269,10 +269,10 @@ func (h *estructuraAnimal) eliminarAnimalID(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		if err == sql.ErrNoRows { // si el animal no existe, el getAnimal devuelve un errnoROWN
-			http.Error(w, "El animal no existe", 404)
+			http.Error(w, "El animal no existe", http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Error del servidor", 500)
+		http.Error(w, "Error del servidor", http.StatusInternalServerError)
 		return
 	}
 
