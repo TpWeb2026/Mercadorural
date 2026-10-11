@@ -197,7 +197,7 @@ func (h *estructuraAnimal) actualizarAnimalID(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	i, err := strconv.Atoi(datos.Precio)
+	i, err := strconv.ParseFloat(datos.Precio, 64)
 	if err != nil {
 		http.Error(w, "el precio tiene que ser un valor numerico positivo", http.StatusBadRequest)
 		return
