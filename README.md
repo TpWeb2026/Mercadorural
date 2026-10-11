@@ -19,8 +19,8 @@ una base de datos con Docker, Tests y un script para automatizar el setup
 
 ```text
 Mercadorural/
-├── compose/
-│   └── docker-compose.yml       // Configuracion del contenedor
+├── docker-compose.yml       // Configuracion del contenedor
+│
 ├── db/
 │   ├── queries/                 // Archivos SQL para las operaciones CRUD
 │   ├── schema/                  // Archivos SQL de generacion de tablas
@@ -29,7 +29,13 @@ Mercadorural/
 │   └── index.html               // HTML de entrada
 ├── go.mod / go.sum              // Dependencias de go
 ├── main.go                      // Punto de entrada de la aplicacion
-└── Makefile                     // Script de deploy y test
+├── Makefile                     // Script de deploy y test
+├── handlePublicaciones.go       // Handle para la entidad de publicaciones
+├── handleUsuario.go             // Handle para la entidad de usuario
+├── handleVentas.go              // Handle para la entidad de ventas
+├── handleAnimales.go            // Handle para la entidad de animales
+└── checkPoint.hurl              // Archivo donde se prueba cada endpoint de cada entidad 
+
 ```
 
 ## Requisitos
@@ -39,6 +45,7 @@ Mercadorural/
 3. Sqlc generate
 4. Docker-Compose
 5. Make
+6. Hurl
 
 ## Instalacion
 
@@ -62,9 +69,8 @@ Mercadorural/
 2. Una vez ya ubicados en la carpeta, tenemos que ejecutar el siguiente comando:
 
    ```
-   make test
+   make test-api
    ```
    Con ese comando, se ejecuta el archivo MakeFile, donde en el mismo se encuentra toda la automatizacion
    para limpiar el contendor, generar el codigo go con sqlc generate, levantar el docker, esperar a que se 
-   levante la base de datos, llamar a la funcion para hacer todos los test, una vez terminado todos los test,
-   da de baja la base de datos y limpia los contenedores
+   levante la base de datos, una vez que el docker esta levantado, se ejecuta el main para que se levante el servidor y se ponga a escuchar en el puerto 8080. Cuando se levanto el servidor, se ejecuta el hurl, el cual chequea que anden correctamente cada endpoint de cada entidad, una vez realizado eso, detiene el servidor y da de baja la base de datos.
