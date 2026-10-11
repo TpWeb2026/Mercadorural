@@ -12,8 +12,10 @@ Proyecto de pagina WEB realizado para la catedra de Programación Web de la FCex
 
 - ~~TP1: Esta etapa del proyecto consiste en hacer el primer servidor web local, donde escuche en el puerto 8080, y sirva un HTML estatico.~~
 
-- TP2: Esta etapa del proyecto define una capa de persistencia mediante PostgreSQL. Incluye un pipeline de automatización para la generación de código con sqlc, montado de
-una base de datos con Docker, Tests y un script para automatizar el setup
+- ~~TP2: Esta etapa del proyecto define una capa de persistencia mediante PostgreSQL. Incluye un pipeline de automatización para la generación de código con sqlc, montado de
+una base de datos con Docker, Tests y un script para automatizar el setup.~~
+
+- TP3: Esta etapa del proyecto consiste en la construcción de una API REST en Go para exponer las entidades del dominio mediante handlers HTTP con operaciones CRUD completas (POST, GET, PUT, DELETE). Conecta la lógica de negocio con la capa de datos de sqlc, incluye manejo y validaciones JSON, estados de respuesta HTTP estándar (201, 200, 204, 404), despliegue containerizado con Docker y una batería de pruebas de integración reproducibles mediante Hurl.
 
 ## Estructura del proyecto
 
@@ -46,6 +48,7 @@ Mercadorural/
 4. Docker-Compose
 5. Make
 6. Hurl
+7. Curl
 
 ## Instalacion
 
