@@ -1,4 +1,4 @@
-COMPOSE_FILE=compose/docker-compose.yml
+COMPOSE_FILE=docker-compose.yml
 DB_CONTAINER=database
 DB_USER=postgres
 DB_NAME=tp2
@@ -43,7 +43,11 @@ test:
 
 	go test -v -count=1 ./db/sqlc/...
 
-# Como septimo paso, limpiamos todo el entorno
+# Como septimo paso, ejecutamos el test de los endpoint con el siguinte comando
+	hurl --test checkPoint.hurl 
+	
+
+# Como octavo paso, limpiamos todo el entorno
 	@echo "--- Limpiando el entorno de Docker ---"
 
 	docker compose -f $(COMPOSE_FILE) down -v
