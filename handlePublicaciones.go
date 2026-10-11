@@ -100,7 +100,7 @@ func (h *estructuraPublicacion) getPublicacionId(w http.ResponseWriter, r *http.
 
 	//encapsulamos la respuesta en formato json y se la mostramos al usuario
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusNotFound) // aca se cambia el StatusOk que da el 200 por el 404 como dice el enunciado
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(publicacion)
 }
 
@@ -121,8 +121,8 @@ func (h *estructuraPublicacion) actualizarPublicacionId(w http.ResponseWriter, r
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
 		return
 	}
-	//convierto el precio que estaba en string a int para pdoer compararlo
-	datosPrecio, err := strconv.ParseInt(datos.Precio, 10, 64)
+	//convierto el precio que estaba en string a float para pdoer compararlo
+	datosPrecio, err := strconv.ParseFloat(datos.Precio, 64)
 
 	// Validaciones básicas de campos obligatorios, regla de negocio
 	if datos.IDAnimal <= 0 || datos.IDVendedor <= 0 || datosPrecio < 0 {
@@ -133,6 +133,7 @@ func (h *estructuraPublicacion) actualizarPublicacionId(w http.ResponseWriter, r
 	// si todo paso correctamente, podemos actualizar la publicacion
 
 	params := db.UpdatePublicacionParams{
+		ID:         id,
 		IDAnimal:   datos.IDAnimal,
 		Precio:     datos.Precio,
 		IDVendedor: datos.IDVendedor,
@@ -172,7 +173,7 @@ func (h *estructuraPublicacion) actualizarPublicacionId(w http.ResponseWriter, r
 	nuevaPublicacion, err := h.Consultas.UpdatePublicacion(r.Context(), params)
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated) // 201 Created
+	w.WriteHeader(http.StatusOK) // 200 Created
 	json.NewEncoder(w).Encode(nuevaPublicacion)
 }
 
@@ -193,7 +194,7 @@ func (h *estructuraPublicacion) agregarPublicacion(w http.ResponseWriter, r *htt
 	}
 
 	// aca usamos el parseint para pasar el precio a numero, pero chequemos err por si trato de pasar un string ej: "abc" a numero
-	precioconv, err := strconv.ParseInt(nuevaPublicacion.Precio, 10, 64)
+	precioconv, err := strconv.ParseFloat(nuevaPublicacion.Precio, 64)
 	if err != nil {
 		http.Error(w, "el formato del precio invalido", http.StatusBadRequest)
 		return
