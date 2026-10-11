@@ -9,6 +9,8 @@ Content-Type: application/json
   "contacto": "OlA12@email.com"
 }
 HTTP 201
+[Captures] #usamos el Captures para poder guardar el id que nos devuelve el json, sino tendriamos que borrar y crear cada vez que ejecutemos el hurl
+usuario_id: jsonpath "$.id"  #guardamos el id en una variable
 [Asserts]
 jsonpath "$.id" exists
 jsonpath "$.nombre" == "Juanito"
@@ -17,16 +19,16 @@ jsonpath "$.nombre" == "Juanito"
 GET http://localhost:8080/usuario/
 HTTP 200
 
-# OBTENER USUARIO POR ID (GET /usuario/1)
-GET http://localhost:8080/usuario/1
+# OBTENER USUARIO POR ID (GET /usuario/{{usuario_id}})
+GET http://localhost:8080/usuario/{{usuario_id}}
 HTTP 200
 [Asserts]
-jsonpath "$.id" == 1
+jsonpath "$.id" == {{usuario_id}}
 jsonpath "$.nombre" == "Juanito"
 
-# ACTUALIZAR USUARIO POR ID (PUT /usuario/1)
+# ACTUALIZAR USUARIO POR ID (PUT /usuario/{{usuario_id}})
 
-PUT http://localhost:8080/usuario/1
+PUT http://localhost:8080/usuario/{{usuario_id}}
 Content-Type: application/json
 {
   "nombre": "HOla tubi",
@@ -39,13 +41,15 @@ HTTP 200
 jsonpath "$.nombre" == "HOla tubi"
 jsonpath "$.apellido" == "hola1 123"
 
-# ELIMINAR USUARIO POR ID (DELETE /usuario/1)
-DELETE http://localhost:8080/usuario/1
+# ELIMINAR USUARIO POR ID (DELETE /usuario/{{usuario_id}})
+DELETE http://localhost:8080/usuario/{{usuario_id}}
 HTTP 204
 
 # VERIFICAR BORRADO (GET /usuario/1 debe dar 404)
-GET http://localhost:8080/usuario/1
+GET http://localhost:8080/usuario/{{usuario_id}}
 HTTP 404
 
 
 # ------ Chequeamos cada endpoint de los animales ------
+
+
