@@ -56,6 +56,10 @@ HTTP 204
 GET http://localhost:8080/usuario/{{usuario_id}}
 HTTP 404
 
+# VERIFICAR BÚSQUEDA DE USUARIO INEXISTENTE (GET /usuario/999999 debe dar 404)
+GET http://localhost:8080/usuario/999999
+HTTP 404
+
 
 # ------ Chequeamos cada endpoint de los animales ------
 
@@ -142,6 +146,11 @@ HTTP 404
 # LIMPIEZA: ELIMINAR USUARIO DUEÑO, para que quede consistente la base 
 DELETE http://localhost:8080/usuario/{{vendedor_id}}
 HTTP 204
+
+# VERIFICAR BÚSQUEDA DE ANIMALES INEXISTENTE (GET /animales/999999 debe dar 404)
+GET http://localhost:8080/animales/999999
+HTTP 404
+
 
 
 
@@ -239,5 +248,139 @@ HTTP 204
 GET http://localhost:8080/publicacion/{{publicacion_id}}
 HTTP 404
 
+# VERIFICAR BÚSQUEDA DE PUBLICACION INEXISTENTE (GET /publicacion/999999 debe dar 404)
+GET http://localhost:8080/publicacion/999999
+HTTP 404
 
 
+
+# PRERREQUISITOS PARA VENTAS: CREACIÓN DE DEPENDENCIAS
+
+
+# CREAR USUARIO VENDEDOR (POST /usuario)
+POST http://localhost:8080/usuario
+Content-Type: application/json
+{
+  "nombre": "Carlos",
+  "apellido": "Pérez",
+  "contacto": "carlos@email.com"
+}
+
+HTTP 201
+[Captures]
+vendedor1_id: jsonpath "$.id"
+[Asserts]
+jsonpath "$.id" exists
+
+
+# CREAR USUARIO COMPRADOR (POST /usuario)
+POST http://localhost:8080/usuario
+Content-Type: application/json
+{
+  "nombre": "Ana",
+  "apellido": "Gómez",
+  "contacto": "ana@email.com"
+}
+
+HTTP 201
+[Captures]
+comprador1_id: jsonpath "$.id"
+[Asserts]
+jsonpath "$.id" exists
+
+
+# CREAR ANIMAL (POST /animales)
+POST http://localhost:8080/animales
+Content-Type: application/json
+{
+  "nombre": "Toro Hereford",
+  "raza": "Hereford",
+  "id_dueno": {{vendedor1_id}},
+  "precio": "300.00"
+}
+
+HTTP 201
+[Captures]
+animal1_id: jsonpath "$.id"
+[Asserts]
+jsonpath "$.id" exists
+
+
+# CREAR PUBLICACIÓN (POST /publicacion)
+POST http://localhost:8080/publicacion
+Content-Type: application/json
+{
+  "id_animal": {{animal1_id}},
+  "id_vendedor": {{vendedor1_id}},
+  "precio": "300.00"
+}
+
+HTTP 201
+[Captures]
+publicacion1_id: jsonpath "$.id"
+[Asserts]
+jsonpath "$.id" exists
+
+
+
+
+
+# PRUEBAS DE LA ENTIDAD VENTA
+
+
+# CREAR VENTA (POST /venta)
+POST http://localhost:8080/venta
+Content-Type: application/json
+{
+  "id_publicacion": {{publicacion1_id}},
+  "id_vendedor": {{vendedor1_id}},
+  "id_comprador": {{comprador1_id}}
+}
+
+HTTP 201
+[Captures]
+venta_id: jsonpath "$.id"
+[Asserts]
+jsonpath "$.id" exists
+jsonpath "$.id_publicacion" == {{publicacion1_id}}
+jsonpath "$.id_vendedor" == {{vendedor1_id}}
+jsonpath "$.id_comprador" == {{comprador1_id}}
+
+
+# PROBAR ID INVALIDO EN VENTA (DEBE DEVOLVER 400)
+GET http://localhost:8080/venta/abc
+HTTP 400
+
+
+# LISTAR VENTAS (GET /venta)
+GET http://localhost:8080/venta
+HTTP 200
+
+
+# OBTENER VENTA POR ID (GET /venta/{{venta_id}})
+GET http://localhost:8080/venta/{{venta_id}}
+HTTP 200
+[Asserts]
+jsonpath "$.id" == {{venta_id}}
+
+
+# INTENTAR ACTUALIZAR VENTA POR ID (PUT /venta/{{venta_id}} debe dar 405 por ser registro histórico)
+PUT http://localhost:8080/venta/{{venta_id}}
+Content-Type: application/json
+{
+  "id_publicacion": {{publicacion1_id}},
+  "id_vendedor": {{vendedor1_id}},
+  "id_comprador": {{comprador1_id}}
+}
+
+HTTP 405
+
+
+# INTENTAR ELIMINAR VENTA POR ID (DELETE /venta/{{venta_id}} debe dar 405 por ser registro histórico)
+DELETE http://localhost:8080/venta/{{venta_id}}
+HTTP 405
+
+
+# VERIFICAR BÚSQUEDA DE VENTA INEXISTENTE (GET /venta/999999 debe dar 404)
+GET http://localhost:8080/venta/999999
+HTTP 404
