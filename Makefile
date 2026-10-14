@@ -92,7 +92,7 @@ test-api:
 	HURL_STATUS=$$?; \
 	echo "--- Deteniendo servidor Go ---"; \
 	kill $$ID_SERVIDOR 2>/dev/null || true; \
-	echo "--- Limpiando el entorno de Docker ---" \
+	echo "--- Limpiando el entorno de Docker ---"; \
 	docker compose -f $(COMPOSE_FILE) down -v; \
 	if [ $$HURL_STATUS -ne 0 ]; then \
 		echo "Fallaron las pruebas de Hurl."; \

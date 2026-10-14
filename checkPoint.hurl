@@ -15,9 +15,16 @@ usuario_id: jsonpath "$.id"  #guardamos el id en una variable
 jsonpath "$.id" exists
 jsonpath "$.nombre" == "Juanito"
 
+
+
 # LISTAR USUARIOS (GET /usuario)
 GET http://localhost:8080/usuario
 HTTP 200
+
+
+# PROBAR ID INVALIDO EN USUARIO (DEBE DEVOLVER 400)
+GET http://localhost:8080/usuario/abc
+HTTP 400
 
 # OBTENER USUARIO POR ID (GET /usuario/{{usuario_id}})
 GET http://localhost:8080/usuario/{{usuario_id}}
@@ -88,9 +95,19 @@ jsonpath "$.id" exists
 jsonpath "$.nombre" == "Firulais"
 jsonpath "$.id_dueno" == {{vendedor_id}}
 
+
+
 # LISTAR ANIMALES (GET /animales)
 GET http://localhost:8080/animales
 HTTP 200
+
+#TENEMOS QUE PROBAR QUE EL ID SEA UN NUMERO 
+
+
+# PROBAR ID INVALIDO EN PUBLICACIONES (DEBE DEVOLVER 400)
+GET http://localhost:8080/animales/abc
+HTTP 400
+
 
 # OBTENER ANIMAL POR ID (GET /animales/{{animal_id}})
 GET http://localhost:8080/animales/{{animal_id}}
@@ -172,6 +189,8 @@ Content-Type: application/json
   "precio": "300.00"
 }
 
+
+
 HTTP 201
 [Captures]
 publicacion_id: jsonpath "$.id"
@@ -179,6 +198,10 @@ publicacion_id: jsonpath "$.id"
 jsonpath "$.id" exists
 jsonpath "$.id_animal" == {{animal1_id}}
 jsonpath "$.id_vendedor" == {{vendedor1_id}}
+
+# PROBAR ID INVALIDO EN PUBLICACIONES (DEBE DEVOLVER 400)
+GET http://localhost:8080/publicacion/abc
+HTTP 400
 
 
 # LISTAR PUBLICACIONES ACTIVAS (GET /publicacion)
@@ -215,3 +238,6 @@ HTTP 204
 # VERIFICAR BORRADO (GET /publicacion/{{publicacion_id}} debe dar 404)
 GET http://localhost:8080/publicacion/{{publicacion_id}}
 HTTP 404
+
+
+

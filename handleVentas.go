@@ -16,30 +16,8 @@ type estructuraVentas struct {
 	Consultas *db.Queries
 }
 
-func (h *estructuraVentas) CRUDventas(w http.ResponseWriter, r *http.Request) {
-	cantidadURL := strings.Split(r.URL.Path, "/")
-
-	if len(cantidadURL) > 3 {
-		http.Error(w, "URL no permitida", http.StatusBadRequest)
-		return
-	}
-
-	// CASO CON ID: /Ventas/5
-	if len(cantidadURL) == 3 && cantidadURL[2] != "" {
-		switch r.Method {
-		case http.MethodGet:
-			h.getVentasId(w, r)
-		case http.MethodPut:
-			//h.actualizarVentasId(w, r) // DISCUTIR SI TIENE SENTIDO, YA QUE VENTAS ES UN HISTORICO Y NO TENDRIA SENTIDO ACTUALIZAR ALGO QUE ES PARA MANTENER UN REGISTRO
-		case http.MethodDelete:
-			//h.eliminarVentasId(w, r) // ESTE NO TIENE SENTIDO, YA QUE PARA QUE VAS A ELIMINAR UNA VENTA DE HISTORICO SI PUEDE ARRUINAR TU CONTABILIDAD
-		default:
-			http.Error(w, "Método no aceptado", http.StatusMethodNotAllowed)
-		}
-		return
-	}
-
-	// CASO SIN ID: /Ventas
+// Handler para la colección (/ventas)
+func (h *estructuraVentas) VentasHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		h.listaDeVentas(w, r)
@@ -50,6 +28,25 @@ func (h *estructuraVentas) CRUDventas(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Handler para una venta individual (/ventas/{id})
+func (h *estructuraVentas) VentaPorIDHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.getVentasId(w, r)
+	// PUT y DELETE se omiten intencionalmente al ser un registro histórico
+	default:
+		http.Error(w, "Método no aceptado", http.StatusMethodNotAllowed)
+	}
+}
+
+/*
+	 ACTUALMENTE PUBLICACION TIENE UN ACTIVO DE TRUE O FALSE, LO VAMOS A PASAR A UNO DE 3 ESTADOS
+		ACTIVA:
+		FINALIZADA:
+		INACTIVA:
+
+		ACTUALMENTE LA LISTA DE VENTA TRAE SOLO LAS ACTIVAS.
+*/
 func (h *estructuraVentas) listaDeVentas(w http.ResponseWriter, r *http.Request) {
 	//guardamos en una variables todas las Ventas activas que nos devuelve la base de datos
 	Ventas, err := h.Consultas.ListVentasConDetalle(r.Context())
@@ -62,7 +59,7 @@ func (h *estructuraVentas) listaDeVentas(w http.ResponseWriter, r *http.Request)
 
 	// si no hay ninguna Ventas, entonces creamos una vacia para poder devolvesela al usuario en formato json
 	if Ventas == nil {
-		Ventas = []db.ListVentasConDetalleRow{} // ACA SE TENDRIA QUE DEVOLVER []DB.VENTUM{} PERO EL SQLC GENERO UNA ESTRUCTURA AL PEDIR LAS VENTAS ENTONCES TENEMOS QUE ADAPTARLO A ESA ESTRUCTURA
+		Ventas = []db.ListVentasConDetalleRow{}
 	}
 
 	// se la devolvemos al usuario en formato json

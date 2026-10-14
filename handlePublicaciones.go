@@ -42,7 +42,6 @@ func (h *estructuraPublicacion) PublicacionPorIDHandler(w http.ResponseWriter, r
 	}
 }
 
-
 func (h *estructuraPublicacion) listaDePublicaciones(w http.ResponseWriter, r *http.Request) {
 	//guardamos en una variables todas las publicacione activas que nos devuelve la base de datos
 	publicaciones, err := h.Consultas.ListPublicacionesActivas(r.Context())

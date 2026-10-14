@@ -6,11 +6,11 @@ RETURNING *;
 -- name: GetPublicacion :one
 SELECT id, id_animal, precio, id_vendedor 
 FROM Publicacion 
-WHERE id = $1 LIMIT 1;
+WHERE id = $1 AND activo = true LIMIT 1;
 
 -- name: ListPublicacionesActivas :many
-SELECT id, id_animal, precio, id_vendedor 
-FROM Publicacion 
+SELECT id, id_animal, precio, id_vendedor, activo
+FROM Publicacion WHERE activo = true
 ORDER BY id DESC;
 
 -- name: UpdatePublicacion :one

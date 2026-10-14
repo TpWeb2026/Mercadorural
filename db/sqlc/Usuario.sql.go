@@ -13,7 +13,7 @@ import (
 const createUsuario = `-- name: CreateUsuario :one
 INSERT INTO Usuario (nombre, apellido, contacto)
 VALUES ($1, $2, $3)
-RETURNING id, nombre, apellido, contacto
+RETURNING id, nombre, apellido, contacto, activo
 `
 
 type CreateUsuarioParams struct {
@@ -30,12 +30,15 @@ func (q *Queries) CreateUsuario(ctx context.Context, arg CreateUsuarioParams) (U
 		&i.Nombre,
 		&i.Apellido,
 		&i.Contacto,
+		&i.Activo,
 	)
 	return i, err
 }
 
 const deleteUsuario = `-- name: DeleteUsuario :exec
-DELETE FROM Usuario
+UPDATE Usuario
+SET activo = false      /*flag para borrado logico, y poder mantener los valores
+                         transaccionales de Venta.*/
 WHERE id = $1
 `
 
@@ -47,12 +50,19 @@ func (q *Queries) DeleteUsuario(ctx context.Context, id int64) error {
 const getUsuario = `-- name: GetUsuario :one
 SELECT id, nombre, apellido, contacto 
 FROM Usuario 
-WHERE id = $1 LIMIT 1
+WHERE id = $1 AND activo = true LIMIT 1
 `
 
-func (q *Queries) GetUsuario(ctx context.Context, id int64) (Usuario, error) {
+type GetUsuarioRow struct {
+	ID       int64          `json:"id"`
+	Nombre   string         `json:"nombre"`
+	Apellido string         `json:"apellido"`
+	Contacto sql.NullString `json:"contacto"`
+}
+
+func (q *Queries) GetUsuario(ctx context.Context, id int64) (GetUsuarioRow, error) {
 	row := q.db.QueryRowContext(ctx, getUsuario, id)
-	var i Usuario
+	var i GetUsuarioRow
 	err := row.Scan(
 		&i.ID,
 		&i.Nombre,
@@ -63,8 +73,8 @@ func (q *Queries) GetUsuario(ctx context.Context, id int64) (Usuario, error) {
 }
 
 const listUsuarios = `-- name: ListUsuarios :many
-SELECT id, nombre, apellido, contacto 
-FROM Usuario 
+SELECT id, nombre, apellido, contacto, activo
+FROM Usuario WHERE activo = true 
 ORDER BY id
 `
 
@@ -82,6 +92,7 @@ func (q *Queries) ListUsuarios(ctx context.Context) ([]Usuario, error) {
 			&i.Nombre,
 			&i.Apellido,
 			&i.Contacto,
+			&i.Activo,
 		); err != nil {
 			return nil, err
 		}
@@ -102,7 +113,7 @@ SET nombre = $2,
     apellido = $3,
     contacto = $4
 WHERE id = $1
-RETURNING id, nombre, apellido, contacto
+RETURNING id, nombre, apellido, contacto, activo
 `
 
 type UpdateUsuarioParams struct {
@@ -125,6 +136,7 @@ func (q *Queries) UpdateUsuario(ctx context.Context, arg UpdateUsuarioParams) (U
 		&i.Nombre,
 		&i.Apellido,
 		&i.Contacto,
+		&i.Activo,
 	)
 	return i, err
 }

@@ -17,7 +17,8 @@ ORDER BY fecha DESC;
 -- name: ListVentasConDetalle :many
 SELECT v.id AS venta_id, v.fecha, 
        u_comp.nombre AS comprador_nombre, 
-       u_vend.nombre AS vendedor_nombre, 
+       u_vend.nombre AS vendedor_nombre,
+       p.id AS id_publicacion, 
        p.precio
 FROM Venta v
 JOIN Usuario u_comp ON v.id_comprador = u_comp.id

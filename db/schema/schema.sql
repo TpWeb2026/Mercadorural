@@ -2,7 +2,9 @@ CREATE TABLE Usuario (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL,
     apellido VARCHAR(50) NOT NULL,
-    contacto VARCHAR(150)
+    contacto VARCHAR(150),
+    activo BOOLEAN NOT NULL DEFAULT true    /*Campo añadido para permitir el soft delete y mantener
+                                             las transacciones historicas sin sobrecargar la tabla venta*/
 );
 
 CREATE TABLE Animal (
@@ -22,6 +24,7 @@ CREATE TABLE Publicacion (
     id_animal BIGINT NOT NULL,
     precio NUMERIC(10, 2) NOT NULL,
     id_vendedor BIGINT NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT fk_pub_animal 
         FOREIGN KEY (id_animal) REFERENCES Animal(id) 

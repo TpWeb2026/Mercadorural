@@ -21,6 +21,7 @@ type Publicacion struct {
 	IDAnimal   int64  `json:"id_animal"`
 	Precio     string `json:"precio"`
 	IDVendedor int64  `json:"id_vendedor"`
+	Activo     bool   `json:"activo"`
 }
 
 type Usuario struct {
@@ -28,6 +29,7 @@ type Usuario struct {
 	Nombre   string         `json:"nombre"`
 	Apellido string         `json:"apellido"`
 	Contacto sql.NullString `json:"contacto"`
+	Activo   bool           `json:"activo"`
 }
 
 type Ventum struct {

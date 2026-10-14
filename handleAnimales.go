@@ -132,18 +132,17 @@ func (h *estructuraAnimal) agregarAnimal(w http.ResponseWriter, r *http.Request)
 
 // devuelve un animal en formato json segun su id
 func (h *estructuraAnimal) getAnimalId(w http.ResponseWriter, r *http.Request) {
-	// Extraer el ID desde la URL
-	partesURL := strings.Split(r.URL.Path, "/") // Ej: ["", "animales", "5"]
-	idStr := partesURL[2]
 
-	// Convertir el ID de string a int64 (ya que UpdateAnimalParams pide int64)
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	// aca sacamos el id que nos llega por la url
+	partesURL := strings.Split(r.URL.Path, "/")
+	id, err := strconv.ParseInt(partesURL[2], 10, 64)
+	//chequeamos que el id sea valido
 	if err != nil {
 		http.Error(w, "ID inválido en la URL", http.StatusBadRequest)
 		return
 	}
 
-	animalObtenido, err := h.Consultas.GetAnimal(r.Context(), int64(id))
+	animalObtenido, err := h.Consultas.GetAnimal(r.Context(), id)
 
 	if err != nil {
 		if err == sql.ErrNoRows {

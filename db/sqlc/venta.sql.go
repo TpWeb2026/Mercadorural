@@ -103,7 +103,8 @@ func (q *Queries) ListVentasByComprador(ctx context.Context, idComprador int64) 
 const listVentasConDetalle = `-- name: ListVentasConDetalle :many
 SELECT v.id AS venta_id, v.fecha, 
        u_comp.nombre AS comprador_nombre, 
-       u_vend.nombre AS vendedor_nombre, 
+       u_vend.nombre AS vendedor_nombre,
+       p.id AS id_publicacion, 
        p.precio
 FROM Venta v
 JOIN Usuario u_comp ON v.id_comprador = u_comp.id
@@ -116,6 +117,7 @@ type ListVentasConDetalleRow struct {
 	Fecha           sql.NullTime `json:"fecha"`
 	CompradorNombre string       `json:"comprador_nombre"`
 	VendedorNombre  string       `json:"vendedor_nombre"`
+	IDPublicacion   int64        `json:"id_publicacion"`
 	Precio          string       `json:"precio"`
 }
 
@@ -133,6 +135,7 @@ func (q *Queries) ListVentasConDetalle(ctx context.Context) ([]ListVentasConDeta
 			&i.Fecha,
 			&i.CompradorNombre,
 			&i.VendedorNombre,
+			&i.IDPublicacion,
 			&i.Precio,
 		); err != nil {
 			return nil, err

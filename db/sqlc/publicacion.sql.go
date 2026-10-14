@@ -12,7 +12,7 @@ import (
 const createPublicacion = `-- name: CreatePublicacion :one
 INSERT INTO Publicacion (id_animal, precio, id_vendedor)
 VALUES ($1, $2, $3)
-RETURNING id, id_animal, precio, id_vendedor
+RETURNING id, id_animal, precio, id_vendedor, activo
 `
 
 type CreatePublicacionParams struct {
@@ -29,6 +29,7 @@ func (q *Queries) CreatePublicacion(ctx context.Context, arg CreatePublicacionPa
 		&i.IDAnimal,
 		&i.Precio,
 		&i.IDVendedor,
+		&i.Activo,
 	)
 	return i, err
 }
@@ -46,12 +47,19 @@ func (q *Queries) DeletePublicacion(ctx context.Context, id int64) error {
 const getPublicacion = `-- name: GetPublicacion :one
 SELECT id, id_animal, precio, id_vendedor 
 FROM Publicacion 
-WHERE id = $1 LIMIT 1
+WHERE id = $1 AND activo = true LIMIT 1
 `
 
-func (q *Queries) GetPublicacion(ctx context.Context, id int64) (Publicacion, error) {
+type GetPublicacionRow struct {
+	ID         int64  `json:"id"`
+	IDAnimal   int64  `json:"id_animal"`
+	Precio     string `json:"precio"`
+	IDVendedor int64  `json:"id_vendedor"`
+}
+
+func (q *Queries) GetPublicacion(ctx context.Context, id int64) (GetPublicacionRow, error) {
 	row := q.db.QueryRowContext(ctx, getPublicacion, id)
-	var i Publicacion
+	var i GetPublicacionRow
 	err := row.Scan(
 		&i.ID,
 		&i.IDAnimal,
@@ -62,8 +70,8 @@ func (q *Queries) GetPublicacion(ctx context.Context, id int64) (Publicacion, er
 }
 
 const listPublicacionesActivas = `-- name: ListPublicacionesActivas :many
-SELECT id, id_animal, precio, id_vendedor 
-FROM Publicacion 
+SELECT id, id_animal, precio, id_vendedor, activo
+FROM Publicacion WHERE activo = true
 ORDER BY id DESC
 `
 
@@ -81,6 +89,7 @@ func (q *Queries) ListPublicacionesActivas(ctx context.Context) ([]Publicacion, 
 			&i.IDAnimal,
 			&i.Precio,
 			&i.IDVendedor,
+			&i.Activo,
 		); err != nil {
 			return nil, err
 		}
@@ -101,7 +110,7 @@ SET id_animal = $2,
     precio = $3,
     id_vendedor = $4
 WHERE id = $1
-RETURNING id, id_animal, precio, id_vendedor
+RETURNING id, id_animal, precio, id_vendedor, activo
 `
 
 type UpdatePublicacionParams struct {
@@ -124,6 +133,7 @@ func (q *Queries) UpdatePublicacion(ctx context.Context, arg UpdatePublicacionPa
 		&i.IDAnimal,
 		&i.Precio,
 		&i.IDVendedor,
+		&i.Activo,
 	)
 	return i, err
 }

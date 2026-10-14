@@ -83,7 +83,8 @@ func main() {
 	http.HandleFunc("/usuario/", manejadorDeUsuarios.UsuarioPorIDHandler)
 	http.HandleFunc("/publicacion", manejadorDePublicacion.PublicacionesHandler) //placeholder para que no tire error
 	http.HandleFunc("/publicacion/", manejadorDePublicacion.PublicacionPorIDHandler)
-	http.HandleFunc("/venta/", manejadorDeVentas.CRUDventas) //placeholder
+	http.HandleFunc("/venta", manejadorDeVentas.VentasHandler)
+	http.HandleFunc("/venta/", manejadorDeVentas.VentaPorIDHandler) //placeholder
 
 	// Define el puerto y muestra un mensaje
 	port = ":8080"
