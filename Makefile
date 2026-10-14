@@ -75,7 +75,7 @@ test-api:
 	@cat $(SCHEMA_DIR)/*.sql | docker compose -f $(COMPOSE_FILE) exec -T $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) > /dev/null
 
 	@echo "--- Levantando API y ejecutando pruebas Hurl ---"
-	@go run main.go & ID_SERVIDOR=$$!; \
+	@go run . & ID_SERVIDOR=$$!; \
 	echo "-> Esperando respuesta de http://localhost:8080..."; \
 	TIMEOUT=10; \
 	while [ $$TIMEOUT -gt 0 ] && ! curl -s http://localhost:8080/usuario/ > /dev/null 2>&1; do \

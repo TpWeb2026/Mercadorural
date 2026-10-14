@@ -77,10 +77,13 @@ func main() {
 	manejadorDePublicacion := &estructuraPublicacion{Consultas: metodoBD}
 	manejadorDeVentas := &estructuraVentas{Consultas: metodoBD}
 
-	http.HandleFunc("/animales/", manejadorDeAnimales.CRUDanimal)
-	http.HandleFunc("/usuario/", manejadorDeUsuarios.CRUDusuarios)
-	http.HandleFunc("/publicacion/", manejadorDePublicacion.CRUDpublicacion) //placeholder para que no tire error
-	http.HandleFunc("/venta/", manejadorDeVentas.CRUDventas)                 //placeholder
+	http.HandleFunc("/animales", manejadorDeAnimales.AnimalesHandler) // eso marcaria que llega un id animales/{id}
+	http.HandleFunc("/animales/", manejadorDeAnimales.AnimalPorIDHandler)
+	http.HandleFunc("/usuario", manejadorDeUsuarios.UsuariosHandler)
+	http.HandleFunc("/usuario/", manejadorDeUsuarios.UsuarioPorIDHandler)
+	http.HandleFunc("/publicacion", manejadorDePublicacion.PublicacionesHandler) //placeholder para que no tire error
+	http.HandleFunc("/publicacion/", manejadorDePublicacion.PublicacionPorIDHandler)
+	http.HandleFunc("/venta/", manejadorDeVentas.CRUDventas) //placeholder
 
 	// Define el puerto y muestra un mensaje
 	port = ":8080"

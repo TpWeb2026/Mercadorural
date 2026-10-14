@@ -39,7 +39,7 @@ CREATE TABLE Venta (
     fecha TIMESTAMPTZ DEFAULT NOW(),
 
     /*  Ver el tema de cuando se elimina un usuario, la publicacion tendria que quedarse, lo mismo con el animal */
-
+    /* sacarle las restrcciones y dejarla solo, sin fk, para no tener problema con el tema de eliminar los usuarios */
     CONSTRAINT fk_venta_pub 
         FOREIGN KEY (id_publicacion) REFERENCES Publicacion(id) 
         ON DELETE RESTRICT ON UPDATE CASCADE,

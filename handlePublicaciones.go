@@ -16,30 +16,8 @@ type estructuraPublicacion struct {
 	Consultas *db.Queries
 }
 
-func (h *estructuraPublicacion) CRUDpublicacion(w http.ResponseWriter, r *http.Request) {
-	cantidadURL := strings.Split(r.URL.Path, "/")
-
-	if len(cantidadURL) > 3 {
-		http.Error(w, "URL no permitida", http.StatusBadRequest)
-		return
-	}
-
-	// CASO CON ID: /publicaciones/5
-	if len(cantidadURL) == 3 && cantidadURL[2] != "" {
-		switch r.Method {
-		case http.MethodGet:
-			h.getPublicacionId(w, r)
-		case http.MethodPut:
-			h.actualizarPublicacionId(w, r)
-		case http.MethodDelete:
-			h.eliminarPublicacionId(w, r)
-		default:
-			http.Error(w, "Método no aceptado", http.StatusMethodNotAllowed)
-		}
-		return
-	}
-
-	// CASO SIN ID: /publicaciones
+// 1. Handler para la colección (/publicaciones)
+func (h *estructuraPublicacion) PublicacionesHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		h.listaDePublicaciones(w, r)
@@ -49,6 +27,21 @@ func (h *estructuraPublicacion) CRUDpublicacion(w http.ResponseWriter, r *http.R
 		http.Error(w, "Método no aceptado", http.StatusMethodNotAllowed)
 	}
 }
+
+// 2. Handler para una publicación individual (/publicaciones/{id})
+func (h *estructuraPublicacion) PublicacionPorIDHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.getPublicacionId(w, r)
+	case http.MethodPut:
+		h.actualizarPublicacionId(w, r)
+	case http.MethodDelete:
+		h.eliminarPublicacionId(w, r)
+	default:
+		http.Error(w, "Método no aceptado", http.StatusMethodNotAllowed)
+	}
+}
+
 
 func (h *estructuraPublicacion) listaDePublicaciones(w http.ResponseWriter, r *http.Request) {
 	//guardamos en una variables todas las publicacione activas que nos devuelve la base de datos

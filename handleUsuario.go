@@ -22,39 +22,30 @@ type dtoUsuario struct {
 	Contacto *string `json:"contacto"` //*string permite recibir strings o null en JSON
 }
 
-func (h *estructuraUsuario) CRUDusuarios(w http.ResponseWriter, r *http.Request) {
-	cantidadURl := strings.Split(r.URL.Path, "/") // cuento la cantidad de barras que hay en la r.url.path
-
-	if len(cantidadURl) > 3 { // chequeo que el path solo tenga involucrado 2 path, ejemplo usuario/2, si tiene 3 path lo capturamos aca
-		http.Error(w, "Url no permitida", http.StatusBadRequest)
-		return
-	}
-	// Este if lo que chequea es si tiene la longitud para que pueda tener id, si lo tiene, entra y despues se fija que metodo tiene que ejecutar
-	if len(cantidadURl) == 3 && cantidadURl[2] != "" {
-		switch r.Method {
-		case http.MethodGet:
-			h.getUsuarioId(w, r)
-		case http.MethodPut:
-			h.actualizarUsuarioId(w, r)
-		case http.MethodDelete:
-			h.eliminarUsuarioId(w, r)
-		default:
-			http.Error(w, "Metodo no aceptado", http.StatusMethodNotAllowed)
-		}
-		return //esto es para que no siga bajando
-	}
-
-	// si no entro a ninguno de los dos if, es porque solo busca lo que no tiene id
-	// ejemplo ["", "usuario"] -> len = 2
+// Handler para la colección: GET /usuario y POST /usuario
+func (h *estructuraUsuario) UsuariosHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		h.listaDeUsuario(w, r)
 	case http.MethodPost:
 		h.agregarUsuario(w, r)
 	default:
-		http.Error(w, "Metodo no aceptado", http.StatusMethodNotAllowed)
+		http.Error(w, "Método no aceptado", http.StatusMethodNotAllowed)
 	}
+}
 
+// Handler para recurso por ID: GET /usuario/{id}, PUT /usuario/{id}, DELETE /usuario/{id}
+func (h *estructuraUsuario) UsuarioPorIDHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.getUsuarioId(w, r)
+	case http.MethodPut:
+		h.actualizarUsuarioId(w, r)
+	case http.MethodDelete:
+		h.eliminarUsuarioId(w, r)
+	default:
+		http.Error(w, "Método no aceptado", http.StatusMethodNotAllowed)
+	}
 }
 
 // funcion que me lista todos los usuarios

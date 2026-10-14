@@ -1,7 +1,7 @@
 # ------ Chequeamos cada endpoint de los usuarios ------
 
-# CREAR USUARIO (POST /usuario/)
-POST http://localhost:8080/usuario/
+# CREAR USUARIO (POST /usuario)
+POST http://localhost:8080/usuario
 Content-Type: application/json
 {
   "nombre": "Juanito",
@@ -15,8 +15,8 @@ usuario_id: jsonpath "$.id"  #guardamos el id en una variable
 jsonpath "$.id" exists
 jsonpath "$.nombre" == "Juanito"
 
-# LISTAR USUARIOS (GET /usuario/)
-GET http://localhost:8080/usuario/
+# LISTAR USUARIOS (GET /usuario)
+GET http://localhost:8080/usuario
 HTTP 200
 
 # OBTENER USUARIO POR ID (GET /usuario/{{usuario_id}})
@@ -56,7 +56,7 @@ HTTP 404
 # Antes de empezar a chequear los endpoint, tenemos que crear un usuario, porque animales tiene que tener un dueño si o si 
 
 #Creamos el vendedor del animal
-POST http://localhost:8080/usuario/
+POST http://localhost:8080/usuario
 Content-Type: application/json
 {
   "nombre": "Pedro",
@@ -71,8 +71,8 @@ vendedor_id: jsonpath "$.id"
 
 # Empezamos a hacer el test de los endpoint de la entidad de animal
 
-# CREAR ANIMAL (POST /animales/)
-POST http://localhost:8080/animales/
+# CREAR ANIMAL (POST /animales)
+POST http://localhost:8080/animales
 Content-Type: application/json
 {
   "nombre": "Firulais",
@@ -88,8 +88,8 @@ jsonpath "$.id" exists
 jsonpath "$.nombre" == "Firulais"
 jsonpath "$.id_dueno" == {{vendedor_id}}
 
-# LISTAR ANIMALES (GET /animales/)
-GET http://localhost:8080/animales/
+# LISTAR ANIMALES (GET /animales)
+GET http://localhost:8080/animales
 HTTP 200
 
 # OBTENER ANIMAL POR ID (GET /animales/{{animal_id}})
@@ -133,7 +133,7 @@ HTTP 204
 # CREAR VENDEDOR Y ANIMAL
 
 # Crear Usuario Vendedor
-POST http://localhost:8080/usuario/
+POST http://localhost:8080/usuario
 Content-Type: application/json
 {
   "nombre": "Carlos",
@@ -145,7 +145,7 @@ HTTP 201
 vendedor1_id: jsonpath "$.id"
 
 # Crear Animal
-POST http://localhost:8080/animales/
+POST http://localhost:8080/animales
 Content-Type: application/json
 {
   "nombre": "Milo",
@@ -163,8 +163,8 @@ animal1_id: jsonpath "$.id"
 # Empezamos a chequear cada endpoint para la entidad de publicacion
 
 
-# CREAR PUBLICACIÓN (POST /publicacion/)
-POST http://localhost:8080/publicacion/
+# CREAR PUBLICACIÓN (POST /publicacion)
+POST http://localhost:8080/publicacion
 Content-Type: application/json
 {
   "id_animal": {{animal1_id}},
@@ -181,8 +181,8 @@ jsonpath "$.id_animal" == {{animal1_id}}
 jsonpath "$.id_vendedor" == {{vendedor1_id}}
 
 
-# LISTAR PUBLICACIONES ACTIVAS (GET /publicacion/)
-GET http://localhost:8080/publicacion/
+# LISTAR PUBLICACIONES ACTIVAS (GET /publicacion)
+GET http://localhost:8080/publicacion
 HTTP 200
 
 

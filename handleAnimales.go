@@ -16,37 +16,29 @@ type estructuraAnimal struct {
 	Consultas *db.Queries
 }
 
-func (h *estructuraAnimal) CRUDanimal(w http.ResponseWriter, r *http.Request) {
-	cantidadURl := strings.Split(r.URL.Path, "/") // cuento la cantidad de barras que hay en la r.url.path
-
-	if len(cantidadURl) > 3 { // chequeo que el path solo tenga involucrado 2 path, ejemplo animales/2, si tiene 3 path lo capturamos aca
-		http.Error(w, "Url no permitida", http.StatusBadRequest)
-		return
-	}
-	// Este if lo que chequea es si tiene la longitud para que pueda tener id, si lo tiene, entra y despues se fija que metodo tiene que ejecutar
-	if len(cantidadURl) == 3 && cantidadURl[2] != "" {
-		switch r.Method {
-		case http.MethodGet:
-			h.getAnimalId(w, r)
-		case http.MethodPut:
-			h.actualizarAnimalID(w, r)
-		case http.MethodDelete:
-			h.eliminarAnimalID(w, r)
-		default:
-			http.Error(w, "Metodo no aceptado", http.StatusMethodNotAllowed)
-		}
-		return //esto es para que no siga bajando
-	}
-
-	// si no entro a ninguno de los dos if, es porque solo busca lo que no tiene id
-	// ejemplo ["", "animales"] -> len = 2
+// 1. Handler para la colección completa (/animales)
+func (h *estructuraAnimal) AnimalesHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		h.listaDeAnimales(w, r)
 	case http.MethodPost:
 		h.agregarAnimal(w, r)
 	default:
-		http.Error(w, "Metodo no aceptado", http.StatusMethodNotAllowed)
+		http.Error(w, "Método no aceptado", http.StatusMethodNotAllowed)
+	}
+}
+
+// 2. Handler para un recurso individual por ID (/animales/{id})
+func (h *estructuraAnimal) AnimalPorIDHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.getAnimalId(w, r)
+	case http.MethodPut:
+		h.actualizarAnimalID(w, r)
+	case http.MethodDelete:
+		h.eliminarAnimalID(w, r)
+	default:
+		http.Error(w, "Método no aceptado", http.StatusMethodNotAllowed)
 	}
 }
 
