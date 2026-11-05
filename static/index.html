@@ -1,11 +1,140 @@
 <!DOCTYPE html>
-	<html>
-	<head> <title> Mercado Rural </title> </head>
-	<body> 
-		<h1> Mercado Rural WEB </h1>
-		<p> Mercado Rural es una aplicación web destinada a la compra y venta
-        de ganado. Los vendedores podrán publicar animales disponibles
-        para la venta, indicando sus características y precio, mientras
-        que los compradores podrán consultar las publicaciones disponibles. </p>
-	</body>
-	</html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mercado Rural</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-content">
+      <div>
+        <p class="eyebrow">Compra y venta de animales</p>
+        <h1>Mercado Rural</h1>
+        <p class="subtitle">Publicá tus animales y encontrá nuevas oportunidades en el campo.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-content">
+    <p id="app-status" class="status" role="alert" aria-live="assertive"></p>
+
+    <div class="dashboard">
+      <section class="panel panel-primary" aria-labelledby="publicaciones-title">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">Mercado</p>
+            <h2 id="publicaciones-title">Publicaciones activas</h2>
+          </div>
+          <span id="contador-publicaciones" class="count-badge">0</span>
+        </div>
+
+        <form id="form-publicacion" class="form-grid">
+          <div class="field">
+            <label for="publicacion-animal">Animal</label>
+            <select id="publicacion-animal" name="id_animal" required>
+              <option value="">Cargando animales...</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="publicacion-vendedor">Vendedor</label>
+            <select id="publicacion-vendedor" name="id_vendedor" required>
+              <option value="">Cargando usuarios...</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="publicacion-precio">Precio (ARS)</label>
+            <input id="publicacion-precio" name="precio" type="number" min="0" step="0.01" placeholder="150000.00" required>
+          </div>
+          <div class="form-actions">
+            <button id="publicacion-submit" type="submit" class="btn btn-primary">Publicar animal</button>
+            <p id="publicacion-status" class="status" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+
+        <div id="lista-publicaciones" class="card-list" aria-live="polite">
+          <p class="empty-state">Cargando publicaciones...</p>
+        </div>
+      </section>
+
+      <aside class="sidebar" aria-label="Administración de datos">
+        <section class="panel" aria-labelledby="usuarios-title">
+          <div class="panel-header">
+            <div>
+              <p class="section-kicker">Personas</p>
+              <h2 id="usuarios-title">Usuarios</h2>
+            </div>
+            <span id="contador-usuarios" class="count-badge">0</span>
+          </div>
+
+          <form id="form-usuario" class="form-stack">
+            <div class="field">
+              <label for="usuario-nombre">Nombre</label>
+              <input id="usuario-nombre" name="nombre" type="text" autocomplete="given-name" required>
+            </div>
+            <div class="field">
+              <label for="usuario-apellido">Apellido</label>
+              <input id="usuario-apellido" name="apellido" type="text" autocomplete="family-name" required>
+            </div>
+            <div class="field">
+              <label for="usuario-contacto">Contacto</label>
+              <input id="usuario-contacto" name="contacto" type="email" autocomplete="email" placeholder="correo@ejemplo.com">
+            </div>
+            <button id="usuario-submit" type="submit" class="btn btn-secondary">Crear usuario</button>
+            <p id="usuario-status" class="status" role="status" aria-live="polite"></p>
+          </form>
+
+          <div id="lista-usuarios" class="mini-list" aria-live="polite">
+            <p class="empty-state empty-state--small">Cargando usuarios...</p>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="animales-title">
+          <div class="panel-header">
+            <div>
+              <p class="section-kicker">Inventario</p>
+              <h2 id="animales-title">Animales</h2>
+            </div>
+            <span id="contador-animales" class="count-badge">0</span>
+          </div>
+
+          <form id="form-animal" class="form-stack">
+            <div class="field">
+              <label for="animal-nombre">Nombre</label>
+              <input id="animal-nombre" name="nombre" type="text" required>
+            </div>
+            <div class="field">
+              <label for="animal-raza">Raza</label>
+              <input id="animal-raza" name="raza" type="text" required>
+            </div>
+            <div class="field">
+              <label for="animal-dueno">Dueño</label>
+              <select id="animal-dueno" name="id_dueno" required>
+                <option value="">Cargando usuarios...</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="animal-precio">Precio (ARS)</label>
+              <input id="animal-precio" name="precio" type="number" min="0" step="0.01" placeholder="150000.00" required>
+            </div>
+            <button id="animal-submit" type="submit" class="btn btn-secondary">Crear animal</button>
+            <p id="animal-status" class="status" role="status" aria-live="polite"></p>
+          </form>
+
+          <div id="lista-animales" class="mini-list" aria-live="polite">
+            <p class="empty-state empty-state--small">Cargando animales...</p>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Mercado Rural · Catedra Programación Web 2026 · Matias Allende, Patricio Picchioni, Matias Richter</p>
+    </div>
+  </footer>
+</body>
+</html>
