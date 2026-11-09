@@ -23,7 +23,8 @@ SELECT v.id AS venta_id, v.fecha,
 FROM Venta v
 JOIN Usuario u_comp ON v.id_comprador = u_comp.id
 JOIN Usuario u_vend ON v.id_vendedor = u_vend.id
-JOIN Publicacion p ON v.id_publicacion = p.id;
+JOIN Publicacion p ON v.id_publicacion = p.id
+ORDER BY v.fecha DESC, v.id DESC;
 
 -- name: UpdateVenta :one
 UPDATE Venta

@@ -188,3 +188,51 @@ func TestDeletePublicacion(t *testing.T) {
 		t.Errorf("Se esperaba sql.ErrNoRows, se obtuvo: %v", err)
 	}
 }
+
+func TestMarcarPublicacionVendida(t *testing.T) {
+	ctx := context.Background()
+	usuario, animal := crearUsuarioYAnimalPrevios(t, ctx)
+
+	crearPubli := CreatePublicacionParams{
+		IDAnimal:   animal.ID,
+		Precio:     "55000.00",
+		IDVendedor: usuario.ID,
+	}
+	pub, err := testQueries.CreatePublicacion(ctx, crearPubli)
+	if err != nil {
+		t.Fatalf("Fallo al crear la publicacion: %v", err)
+	}
+
+	t.Cleanup(func() {
+		testDB.ExecContext(ctx, "DELETE FROM Publicacion WHERE id = $1", pub.ID)
+	})
+
+	filas, err := testQueries.MarcarPublicacionVendida(ctx, pub.ID)
+	if err != nil {
+		t.Fatalf("Fallo al marcar la publicacion como vendida: %v", err)
+	}
+	if filas != 1 {
+		t.Errorf("Se esperaba 1 fila modificada, se obtuvo %d", filas)
+	}
+
+	_, err = testQueries.GetPublicacion(ctx, pub.ID)
+	if err != sql.ErrNoRows {
+		t.Errorf("Se esperaba sql.ErrNoRows para una publicacion vendida, se obtuvo: %v", err)
+	}
+
+	pubCompra, err := testQueries.GetPublicacionParaCompra(ctx, pub.ID)
+	if err != nil {
+		t.Fatalf("Fallo al obtener la publicacion para compra: %v", err)
+	}
+	if pubCompra.Activo {
+		t.Error("La publicacion deberia estar inactiva despues de la venta")
+	}
+
+	filas, err = testQueries.MarcarPublicacionVendida(ctx, pub.ID)
+	if err != nil {
+		t.Fatalf("Fallo al volver a marcar la publicacion: %v", err)
+	}
+	if filas != 0 {
+		t.Errorf("Se esperaba 0 filas modificadas en la segunda venta, se obtuvo %d", filas)
+	}
+}

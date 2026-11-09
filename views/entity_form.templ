@@ -1,0 +1,36 @@
+package views
+
+import "strconv"
+
+templ PublicacionForm(animales []Opcion, usuarios []Opcion, form PublicacionFormData) {
+	<form method="post" action="/publicacion" class="form-grid">
+		<div class="field">
+			<label for="publicacion-animal">Animal</label>
+			<select id="publicacion-animal" name="id_animal" required disabled?={ len(animales) == 0 }>
+				<option value="">Seleccioná un animal</option>
+				for _, animal := range animales {
+					<option value={ strconv.FormatInt(animal.ID, 10) } selected?={ form.IDAnimal == animal.ID }>{ animal.Texto }</option>
+				}
+			</select>
+		</div>
+		<div class="field">
+			<label for="publicacion-vendedor">Vendedor</label>
+			<select id="publicacion-vendedor" name="id_vendedor" required disabled?={ len(usuarios) == 0 }>
+				<option value="">Seleccioná un vendedor</option>
+				for _, usuario := range usuarios {
+					<option value={ strconv.FormatInt(usuario.ID, 10) } selected?={ form.IDVendedor == usuario.ID }>{ usuario.Texto }</option>
+				}
+			</select>
+		</div>
+		<div class="field">
+			<label for="publicacion-precio">Precio (ARS)</label>
+			<input id="publicacion-precio" name="precio" type="number" min="0" step="0.01" placeholder="150000.00" value={ form.Precio } required/>
+		</div>
+		<div class="form-actions">
+			<button type="submit" class="btn btn-primary" disabled?={ len(animales) == 0 || len(usuarios) == 0 }>Publicar animal</button>
+			if len(animales) == 0 || len(usuarios) == 0 {
+				<p class="status">Primero creá un usuario y un animal.</p>
+			}
+		</div>
+	</form>
+}

@@ -69,6 +69,60 @@ func (q *Queries) GetPublicacion(ctx context.Context, id int64) (GetPublicacionR
 	return i, err
 }
 
+const getPublicacionParaCompra = `-- name: GetPublicacionParaCompra :one
+SELECT id, id_animal, precio, id_vendedor, activo
+FROM Publicacion
+WHERE id = $1 LIMIT 1
+`
+
+func (q *Queries) GetPublicacionParaCompra(ctx context.Context, id int64) (Publicacion, error) {
+	row := q.db.QueryRowContext(ctx, getPublicacionParaCompra, id)
+	var i Publicacion
+	err := row.Scan(
+		&i.ID,
+		&i.IDAnimal,
+		&i.Precio,
+		&i.IDVendedor,
+		&i.Activo,
+	)
+	return i, err
+}
+
+const listPublicaciones = `-- name: ListPublicaciones :many
+SELECT id, id_animal, precio, id_vendedor, activo
+FROM Publicacion
+ORDER BY activo DESC, id DESC
+`
+
+func (q *Queries) ListPublicaciones(ctx context.Context) ([]Publicacion, error) {
+	rows, err := q.db.QueryContext(ctx, listPublicaciones)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Publicacion
+	for rows.Next() {
+		var i Publicacion
+		if err := rows.Scan(
+			&i.ID,
+			&i.IDAnimal,
+			&i.Precio,
+			&i.IDVendedor,
+			&i.Activo,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPublicacionesActivas = `-- name: ListPublicacionesActivas :many
 SELECT id, id_animal, precio, id_vendedor, activo
 FROM Publicacion WHERE activo = true
@@ -102,6 +156,20 @@ func (q *Queries) ListPublicacionesActivas(ctx context.Context) ([]Publicacion, 
 		return nil, err
 	}
 	return items, nil
+}
+
+const marcarPublicacionVendida = `-- name: MarcarPublicacionVendida :execrows
+UPDATE Publicacion
+SET activo = false
+WHERE id = $1 AND activo = true
+`
+
+func (q *Queries) MarcarPublicacionVendida(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, marcarPublicacionVendida, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const updatePublicacion = `-- name: UpdatePublicacion :one

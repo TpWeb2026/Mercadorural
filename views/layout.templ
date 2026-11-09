@@ -1,0 +1,35 @@
+package views
+
+templ Layout(title string) {
+	<!DOCTYPE html>
+	<html lang="es">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta name="color-scheme" content="light"/>
+			<title>{ title }</title>
+			<link rel="stylesheet" href="/static/pico.min.css"/>
+			<link rel="stylesheet" href="/static/styles.css"/>
+		</head>
+		<body>
+			<header class="site-header">
+				<div class="container header-content">
+					<div>
+						<p class="eyebrow">Compra y venta de animales</p>
+						<h1>Mercado Rural</h1>
+						<p class="subtitle">Publicá tus animales y encontrá nuevas oportunidades en el campo.</p>
+					</div>
+					<div class="logo-mark" aria-hidden="true">MR</div>
+				</div>
+			</header>
+			<main class="container main-content">
+				{ children... }
+			</main>
+			<footer class="site-footer">
+				<div class="container">
+					<p>Mercado Rural · Programación Web</p>
+				</div>
+			</footer>
+		</body>
+	</html>
+}

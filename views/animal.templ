@@ -1,0 +1,50 @@
+package views
+
+import "strconv"
+
+templ AnimalForm(usuarios []Opcion, form AnimalFormData) {
+	<form method="post" action="/animales" class="form-stack">
+		<div class="field">
+			<label for="animal-nombre">Nombre</label>
+			<input id="animal-nombre" name="nombre" type="text" value={ form.Nombre } required/>
+		</div>
+		<div class="field">
+			<label for="animal-raza">Raza</label>
+			<input id="animal-raza" name="raza" type="text" value={ form.Raza } required/>
+		</div>
+		<div class="field">
+			<label for="animal-dueno">Dueño</label>
+			<select id="animal-dueno" name="id_dueno" required disabled?={ len(usuarios) == 0 }>
+				<option value="">Seleccioná un dueño</option>
+				for _, usuario := range usuarios {
+					<option value={ strconv.FormatInt(usuario.ID, 10) } selected?={ form.IDDueno == usuario.ID }>{ usuario.Texto }</option>
+				}
+			</select>
+		</div>
+		<div class="field">
+			<label for="animal-precio">Precio (ARS)</label>
+			<input id="animal-precio" name="precio" type="number" min="0" step="0.01" placeholder="150000.00" value={ form.Precio } required/>
+		</div>
+		<button type="submit" class="btn btn-secondary" disabled?={ len(usuarios) == 0 }>Crear animal</button>
+	</form>
+}
+
+templ AnimalList(animales []AnimalVista) {
+	if len(animales) == 0 {
+		<p class="empty-state empty-state--small">Todavía no hay animales.</p>
+	} else {
+		<div class="mini-list">
+			for _, animal := range animales {
+				<div class="mini-item">
+					<div class="mini-item__info">
+						<span class="mini-item__title">{ animal.Nombre } ({ animal.Raza })</span>
+						<span class="mini-item__detail">Dueño: { animal.Dueno } · { animal.Precio }</span>
+					</div>
+					<form method="post" action={ urlEliminar("animales", animal.ID) }>
+						<button type="submit" class="btn btn-danger">Eliminar animal</button>
+					</form>
+				</div>
+			}
+		</div>
+	}
+}

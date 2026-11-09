@@ -2,256 +2,194 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
-	"net/http" //este es para poder sacar el id
-	"strconv"
+	"log"
+	"net/http"
 	"strings"
 	db "tp2/db/sqlc"
+	"tp2/views"
 )
 
-// esta estrucuta se hizo para poder comunicar y poder usar los metodos que nos creo sqlc
-type estructuraPublicacion struct {
-	//en el main en nuestro caso, lo llamamos metodoBD, que seria nuestro *db.Queries
-	Consultas *db.Queries
-}
-
-// 1. Handler para la colección (/publicaciones)
-func (h *estructuraPublicacion) PublicacionesHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		h.listaDePublicaciones(w, r)
-	case http.MethodPost:
-		h.agregarPublicacion(w, r)
-	default:
-		http.Error(w, "Método no aceptado", http.StatusMethodNotAllowed)
-	}
-}
-
-// 2. Handler para una publicación individual (/publicaciones/{id})
-func (h *estructuraPublicacion) PublicacionPorIDHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		h.getPublicacionId(w, r)
-	case http.MethodPut:
-		h.actualizarPublicacionId(w, r)
-	case http.MethodDelete:
-		h.eliminarPublicacionId(w, r)
-	default:
-		http.Error(w, "Método no aceptado", http.StatusMethodNotAllowed)
-	}
-}
-
-func (h *estructuraPublicacion) listaDePublicaciones(w http.ResponseWriter, r *http.Request) {
-	//guardamos en una variables todas las publicacione activas que nos devuelve la base de datos
-	publicaciones, err := h.Consultas.ListPublicacionesActivas(r.Context())
-
-	//chequeamos errores
-	if err != nil {
-		http.Error(w, "Error al obtener publicaciones: "+err.Error(), http.StatusInternalServerError)
+func (app *application) crearPublicacion(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Formulario inválido", http.StatusBadRequest)
 		return
 	}
 
-	// si no hay ninguna publicacion, entonces creamos una vacia para poder devolvesela al usuario en formato json
-	if publicaciones == nil {
-		publicaciones = []db.Publicacion{}
+	form := views.PublicacionFormData{
+		Precio: strings.TrimSpace(r.PostFormValue("precio")),
 	}
 
-	// se la devolvemos al usuario en formato json
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(publicaciones)
-
-}
-
-func (h *estructuraPublicacion) getPublicacionId(w http.ResponseWriter, r *http.Request) {
-	//sacamos el url que nos viene desde el request
-	partesURL := strings.Split(r.URL.Path, "/")
-
-	//lo convertimos a int64 porque esta en string
-	id, err := strconv.ParseInt(partesURL[2], 10, 64)
-
-	//chequeamos que el id sea correcto
+	data, err := app.buildPageData(r.Context())
 	if err != nil {
-		http.Error(w, "ID inválido en la URL", http.StatusBadRequest)
+		log.Printf("cargar datos para crear publicación: %v", err)
+		http.Error(w, "Error interno del servidor", http.StatusInternalServerError)
 		return
 	}
 
-	//llamamos a la funcion que nos devuelve la publicacion dependiendo de un id
-	publicacion, err := h.Consultas.GetPublicacion(r.Context(), id)
+	data.PublicacionForm = form
 
-	//chequeamos los errores
+	idAnimal, err := parseID(r.PostFormValue("id_animal"))
 	if err != nil {
+		data.Error = "Seleccioná un animal válido."
+		app.renderIndex(w, r, data, http.StatusBadRequest)
+		return
+	}
+
+	form.IDAnimal = idAnimal
+	data.PublicacionForm = form
+
+	idVendedor, err := parseID(r.PostFormValue("id_vendedor"))
+	if err != nil {
+		data.Error = "Seleccioná un vendedor válido."
+		app.renderIndex(w, r, data, http.StatusBadRequest)
+		return
+	}
+
+	form.IDVendedor = idVendedor
+	data.PublicacionForm = form
+
+	precio, err := parsePrecio(form.Precio)
+	if err != nil {
+		data.Error = "Ingresá un precio válido."
+		app.renderIndex(w, r, data, http.StatusBadRequest)
+		return
+	}
+
+	if _, err := app.consultas.GetAnimal(r.Context(), idAnimal); err != nil {
+		data.Error = "El animal seleccionado no existe."
+		app.renderIndex(w, r, data, http.StatusBadRequest)
+		return
+	}
+
+	if _, err := app.consultas.GetUsuario(r.Context(), idVendedor); err != nil {
+		data.Error = "El vendedor seleccionado no existe o está inactivo."
+		app.renderIndex(w, r, data, http.StatusBadRequest)
+		return
+	}
+
+	_, err = app.consultas.CreatePublicacion(r.Context(), db.CreatePublicacionParams{
+		IDAnimal:   idAnimal,
+		Precio:     precio,
+		IDVendedor: idVendedor,
+	})
+	if err != nil {
+		log.Printf("crear publicación: %v", err)
+		data.Error = "No se pudo crear la publicación."
+		app.renderIndex(w, r, data, http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/#publicaciones", http.StatusSeeOther)
+}
+
+func (app *application) comprarPublicacion(w http.ResponseWriter, r *http.Request) {
+	idPublicacion, err := parseID(r.PathValue("id"))
+	if err != nil {
+		app.renderPageError(w, r, "El ID de la publicación no es válido.", http.StatusBadRequest)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Formulario inválido", http.StatusBadRequest)
+		return
+	}
+
+	idComprador, err := parseID(r.PostFormValue("id_comprador"))
+	if err != nil {
+		app.renderPageError(w, r, "Seleccioná un comprador válido.", http.StatusBadRequest)
+		return
+	}
+
+	if _, err := app.consultas.GetUsuario(r.Context(), idComprador); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "No se encontró la publicación con ese ID", http.StatusNotFound)
+			app.renderPageError(w, r, "El comprador no existe o está inactivo.", http.StatusBadRequest)
 			return
 		}
-		http.Error(w, "Error en el servidor: "+err.Error(), http.StatusInternalServerError)
+		log.Printf("buscar comprador %d: %v", idComprador, err)
+		app.renderPageError(w, r, "No se pudo verificar el comprador.", http.StatusInternalServerError)
 		return
 	}
 
-	//encapsulamos la respuesta en formato json y se la mostramos al usuario
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(publicacion)
-}
-
-func (h *estructuraPublicacion) actualizarPublicacionId(w http.ResponseWriter, r *http.Request) {
-	// aca sacamos el id que nos llega por la url
-	partesURL := strings.Split(r.URL.Path, "/")
-	id, err := strconv.ParseInt(partesURL[2], 10, 64)
-	//chequeamos que el id sea valido
+	tx, err := app.conexion.BeginTx(r.Context(), nil)
 	if err != nil {
-		http.Error(w, "ID inválido en la URL", http.StatusBadRequest)
+		log.Printf("iniciar transacción de compra: %v", err)
+		app.renderPageError(w, r, "No se pudo iniciar la compra.", http.StatusInternalServerError)
 		return
 	}
+	defer tx.Rollback()
 
-	var datos db.Publicacion
-	err = json.NewDecoder(r.Body).Decode(&datos)
+	consultas := app.consultas.WithTx(tx)
 
-	if err != nil {
-		http.Error(w, "JSON inválido", http.StatusBadRequest)
-		return
-	}
-	//convierto el precio que estaba en string a float para pdoer compararlo
-	datosPrecio, err := strconv.ParseFloat(datos.Precio, 64)
-
-	// Validaciones básicas de campos obligatorios, regla de negocio
-	if datos.IDAnimal <= 0 || datos.IDVendedor <= 0 || datosPrecio < 0 {
-		http.Error(w, "Los campos id_animal, id_vendedor y precio son obligatorios", http.StatusBadRequest)
-		return
-	}
-
-	// si todo paso correctamente, podemos actualizar la publicacion
-
-	params := db.UpdatePublicacionParams{
-		ID:         id,
-		IDAnimal:   datos.IDAnimal,
-		Precio:     datos.Precio,
-		IDVendedor: datos.IDVendedor,
-	}
-
-	//ahora traemos buscar el id vendedor y el id animal antes de actualizar la publicacion
-
-	//traer publicacion
-	// validar
-
-	//traer usuario
-	// validar
-
-	//traer animal
-	// validar
-
-	_, err = h.Consultas.GetPublicacion(r.Context(), id)
-	if err != nil {
-		http.Error(w, "No existe la publicacion", http.StatusBadRequest)
-		return
-	}
-
-	_, err = h.Consultas.GetUsuario(r.Context(), datos.IDVendedor)
-	if err != nil {
-		http.Error(w, "No existe el vendedor", http.StatusBadRequest)
-		return
-	}
-
-	_, err = h.Consultas.GetAnimal(r.Context(), datos.IDAnimal)
-	if err != nil {
-		http.Error(w, "No existe el animal", http.StatusBadRequest)
-		return
-	}
-
-	// todo anda correctamente, por lo tanto, ahora se puede actualizar la publicacion
-
-	nuevaPublicacion, err := h.Consultas.UpdatePublicacion(r.Context(), params)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK) // 200 Created
-	json.NewEncoder(w).Encode(nuevaPublicacion)
-}
-
-func (h *estructuraPublicacion) agregarPublicacion(w http.ResponseWriter, r *http.Request) {
-	var nuevaPublicacion db.Publicacion
-	//aca lo que hacemos es decodificar lo que nos mando el cliente por la solicitud
-	err := json.NewDecoder(r.Body).Decode(&nuevaPublicacion)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// validamos que el precio no sea vacio para que el parse no falle al convertir
-	if nuevaPublicacion.Precio == "" {
-		http.Error(w, "el precio es un campo obligatorio", http.StatusBadRequest)
-		return
-	}
-
-	// aca usamos el parseint para pasar el precio a numero, pero chequemos err por si trato de pasar un string ej: "abc" a numero
-	precioconv, err := strconv.ParseFloat(nuevaPublicacion.Precio, 64)
-	if err != nil {
-		http.Error(w, "el formato del precio invalido", http.StatusBadRequest)
-		return
-	}
-	// aca validamos reglas de negocio
-	if nuevaPublicacion.IDVendedor < 0 || nuevaPublicacion.IDAnimal < 0 || precioconv < 0 {
-		http.Error(w, "el id vendedor y/o el id animal no pueden ser menor a cero, y el precio no puede ser negativo", http.StatusBadRequest)
-		return
-	}
-	// aca validamos que exista el animal, para no tener inconsistencia en la DB
-	_, err = h.Consultas.GetAnimal(r.Context(), nuevaPublicacion.IDAnimal)
-	if err != nil {
-		http.Error(w, "el animal no existe en la DB", http.StatusBadRequest)
-		return
-	}
-	// aca validamos que exista el usuario, para no tener inconsistencia en la DB
-	_, err = h.Consultas.GetUsuario(r.Context(), nuevaPublicacion.IDVendedor)
-	if err != nil {
-		http.Error(w, "el usuario no existe en la DB", http.StatusBadRequest)
-		return
-	}
-	//armamos los parametros para la creacion de la publicacion
-	params := db.CreatePublicacionParams{
-		IDAnimal:   nuevaPublicacion.IDAnimal,
-		Precio:     nuevaPublicacion.Precio,
-		IDVendedor: nuevaPublicacion.IDVendedor,
-	}
-	// guardamos la publicacion en la DB
-	publicacion, err := h.Consultas.CreatePublicacion(r.Context(), params)
-	if err != nil {
-		http.Error(w, "Error al crear la publicacion en la DB", http.StatusInternalServerError)
-		return
-	}
-
-	// si todo esta bien
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated) // se cambio el codigo de 200 a 201 porque en el enunciado dice devolver codigo 201
-	json.NewEncoder(w).Encode(publicacion)
-}
-func (h *estructuraPublicacion) eliminarPublicacionId(w http.ResponseWriter, r *http.Request) {
-	// 	ACA SUPONGO QUE CON ESTO OBTENGO EL ID
-	partesURL := strings.Split(r.URL.Path, "/")
-	id, err := strconv.ParseInt(partesURL[2], 10, 64)
-	if err != nil {
-		http.Error(w, "El ID debe ser un número válido", http.StatusBadRequest)
-		return
-	}
-
-	// chequeamos si la publicacion existe o no
-	_, err = h.Consultas.GetPublicacion(r.Context(), id)
+	publicacion, err := consultas.GetPublicacionParaCompra(r.Context(), idPublicacion)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "La publicación no existe", http.StatusNotFound)
+			app.renderPageError(w, r, "La publicación no existe.", http.StatusNotFound)
 			return
 		}
-		http.Error(w, "Error en el servidor al buscar la publicación: "+err.Error(), http.StatusInternalServerError)
+		log.Printf("buscar publicación %d para compra: %v", idPublicacion, err)
+		app.renderPageError(w, r, "No se pudo verificar la publicación.", http.StatusInternalServerError)
 		return
 	}
 
-	// aca eliminamos la publicacion usando el metodo delete de publicacion
-	err = h.Consultas.DeletePublicacion(r.Context(), id)
+	if !publicacion.Activo {
+		app.renderPageError(w, r, "La publicación ya fue vendida.", http.StatusConflict)
+		return
+	}
+
+	if publicacion.IDVendedor == idComprador {
+		app.renderPageError(w, r, "El comprador no puede ser el mismo que el vendedor.", http.StatusBadRequest)
+		return
+	}
+
+	filas, err := consultas.MarcarPublicacionVendida(r.Context(), idPublicacion)
 	if err != nil {
-		http.Error(w, "Error al eliminar la publicacion", http.StatusInternalServerError)
+		log.Printf("marcar publicación %d como vendida: %v", idPublicacion, err)
+		app.renderPageError(w, r, "No se pudo registrar la venta.", http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent) // devuelvo estado 204
+	if filas == 0 {
+		app.renderPageError(w, r, "La publicación ya fue vendida.", http.StatusConflict)
+		return
+	}
+
+	_, err = consultas.CreateVenta(r.Context(), db.CreateVentaParams{
+		IDPublicacion: idPublicacion,
+		IDVendedor:    publicacion.IDVendedor,
+		IDComprador:   idComprador,
+	})
+	if err != nil {
+		log.Printf("crear venta de publicación %d: %v", idPublicacion, err)
+		app.renderPageError(w, r, "No se pudo registrar la venta.", http.StatusInternalServerError)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Printf("confirmar venta de publicación %d: %v", idPublicacion, err)
+		app.renderPageError(w, r, "No se pudo confirmar la venta.", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/#publicaciones", http.StatusSeeOther)
+}
+
+func (app *application) eliminarPublicacion(w http.ResponseWriter, r *http.Request) {
+	id, err := parseID(r.PathValue("id"))
+	if err != nil {
+		app.renderPageError(w, r, "El ID de la publicación no es válido.", http.StatusBadRequest)
+		return
+	}
+
+	if err := app.consultas.DeletePublicacion(r.Context(), id); err != nil {
+		log.Printf("eliminar publicación %d: %v", id, err)
+		if esErrorClaveForanea(err) {
+			app.renderPageError(w, r, "No se puede eliminar la publicación porque tiene una venta asociada.", http.StatusConflict)
+			return
+		}
+		app.renderPageError(w, r, "No se pudo eliminar la publicación.", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/#publicaciones", http.StatusSeeOther)
 }

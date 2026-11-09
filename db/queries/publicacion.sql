@@ -13,6 +13,21 @@ SELECT id, id_animal, precio, id_vendedor, activo
 FROM Publicacion WHERE activo = true
 ORDER BY id DESC;
 
+-- name: ListPublicaciones :many
+SELECT id, id_animal, precio, id_vendedor, activo
+FROM Publicacion
+ORDER BY activo DESC, id DESC;
+
+-- name: GetPublicacionParaCompra :one
+SELECT id, id_animal, precio, id_vendedor, activo
+FROM Publicacion
+WHERE id = $1 LIMIT 1;
+
+-- name: MarcarPublicacionVendida :execrows
+UPDATE Publicacion
+SET activo = false
+WHERE id = $1 AND activo = true;
+
 -- name: UpdatePublicacion :one
 UPDATE Publicacion
 SET id_animal = $2,

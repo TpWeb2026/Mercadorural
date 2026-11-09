@@ -1,0 +1,60 @@
+package views
+
+import "strconv"
+
+templ IndexPage(data PageData) {
+	@Layout("Mercado Rural") {
+		if data.Error != "" {
+			<div class="alert alert-error" role="alert">{ data.Error }</div>
+		}
+		<div class="dashboard">
+			<div class="main-column">
+				<section id="publicaciones" class="panel panel-primary" aria-labelledby="publicaciones-title">
+					<div class="panel-header">
+						<div>
+							<p class="section-kicker">Mercado</p>
+							<h2 id="publicaciones-title">Publicaciones</h2>
+						</div>
+						<span class="count-badge">{ strconv.Itoa(len(data.Publicaciones)) }</span>
+					</div>
+					@PublicacionForm(data.OpcionesAnimales, data.OpcionesUsuarios, data.PublicacionForm)
+					@PublicacionList(data.Publicaciones, data.OpcionesUsuarios)
+				</section>
+				<section id="ventas" class="panel" aria-labelledby="ventas-title">
+					<div class="panel-header">
+						<div>
+							<p class="section-kicker">Historial</p>
+							<h2 id="ventas-title">Ventas realizadas</h2>
+						</div>
+						<span class="count-badge">{ strconv.Itoa(len(data.Ventas)) }</span>
+					</div>
+					@VentasList(data.Ventas)
+				</section>
+			</div>
+			<aside class="sidebar" aria-label="Administración de datos">
+				<section id="usuarios" class="panel" aria-labelledby="usuarios-title">
+					<div class="panel-header">
+						<div>
+							<p class="section-kicker">Personas</p>
+							<h2 id="usuarios-title">Usuarios</h2>
+						</div>
+						<span class="count-badge">{ strconv.Itoa(len(data.Usuarios)) }</span>
+					</div>
+					@UsuarioForm(data.UsuarioForm)
+					@UsuarioList(data.Usuarios)
+				</section>
+				<section id="animales" class="panel" aria-labelledby="animales-title">
+					<div class="panel-header">
+						<div>
+							<p class="section-kicker">Inventario</p>
+							<h2 id="animales-title">Animales</h2>
+						</div>
+						<span class="count-badge">{ strconv.Itoa(len(data.Animales)) }</span>
+					</div>
+					@AnimalForm(data.OpcionesUsuarios, data.AnimalForm)
+					@AnimalList(data.Animales)
+				</section>
+			</aside>
+		</div>
+	}
+}

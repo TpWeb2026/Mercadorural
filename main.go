@@ -2,97 +2,45 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http" // es lo que me permite crear un servidor web y manejar peticiones HTTP
+	"net/http"
 	"os"
 	db "tp2/db/sqlc"
 
 	"github.com/joho/godotenv"
-	_ "github.com/lib/pq" //driver de postgres
+	_ "github.com/lib/pq"
 )
 
-func MetodoPostAnimal(w http.ResponseWriter, r *http.Request) {
-	var NuevoAnimal db.Animal
-
-	err := json.NewDecoder(r.Body).Decode(&NuevoAnimal)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-}
-
 func main() {
-	//tp3 ejercicio 1, establecer conexion con la DB
-	// godotenv.Load() lee tu archivo .env y mete esos datos ocultos en el sistema operativo
-	err := godotenv.Load()
+	if err := godotenv.Load(); err != nil {
+		log.Println("No se encontró el archivo .env; se usan las variables del entorno")
+	}
+
+	dsn := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+	)
+
+	conexion, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Println("No se encontro el archivo .env")
+		log.Fatalf("Error al abrir la conexión: %v", err)
 	}
-	/*// os.Getenv("DB_DSN") busca específicamente el dato guardado bajo la etiqueta "DB_DSN" en el .env
-	credenciales := os.Getenv("DB_DSN")*/
+	defer conexion.Close()
 
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	dbname := os.Getenv("DB_NAME")
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-
-	if dsn == "" {
-		log.Fatal("Error la variable DB_DSN no esta configurada")
+	if err := conexion.Ping(); err != nil {
+		log.Fatalf("Error conectando a la base de datos: %v", err)
 	}
-	//establecemos conexion con la DB
-	conexion, errDB := sql.Open("postgres", dsn)
-	if err != nil {
-		log.Fatal("Error al abrir la conexion", errDB)
-	}
-	errDB = conexion.Ping()
-	if errDB != nil {
-		log.Fatal("Error conectando a la base de datos ", errDB)
-	}
-	fmt.Println("Conexion a la base de datos exitosa")
+	log.Println("Conexión a la base de datos exitosa")
 
-	//Defino la direccion estatica
-	// con el FileServer ya se contemplan las rutas inexistentes por lo cual al ingresar a una ruta que no existe devuelve 404 page not found
-	// FileServer tambien contempla los Content-Type
-	// creo un manejador de archivos del sistema de archivo de "/static"
-	// el http.dir(staticdir) convierte la ruta del directorio en un sistema de archivo http
-	staticdir := "./static"
-	fs := http.FileServer(http.Dir(staticdir))
+	app := &application{consultas: db.New(conexion), conexion: conexion}
 
-	// Registramos que se muestre la pagina cada vez que se accede ala raiz
-	http.Handle("/", fs)
-
-	//Aca seguimos el main de la parte 3 del tp
-
-	//esta variable sirve para poder usar los metodos que me creo sqlc para poder comunicarme con la base de datos
-	metodoBD := db.New(conexion)
-
-	manejadorDeAnimales := &estructuraAnimal{Consultas: metodoBD} // chequear porque fue que hicimos esto y porque lo llamamos asi en el main
-	manejadorDeUsuarios := &estructuraUsuario{Consultas: metodoBD}
-	manejadorDePublicacion := &estructuraPublicacion{Consultas: metodoBD}
-	manejadorDeVentas := &estructuraVentas{Consultas: metodoBD}
-
-	http.HandleFunc("/animales", manejadorDeAnimales.AnimalesHandler) // eso marcaria que llega un id animales/{id}
-	http.HandleFunc("/animales/", manejadorDeAnimales.AnimalPorIDHandler)
-	http.HandleFunc("/usuario", manejadorDeUsuarios.UsuariosHandler)
-	http.HandleFunc("/usuario/", manejadorDeUsuarios.UsuarioPorIDHandler)
-	http.HandleFunc("/publicacion", manejadorDePublicacion.PublicacionesHandler) //placeholder para que no tire error
-	http.HandleFunc("/publicacion/", manejadorDePublicacion.PublicacionPorIDHandler)
-	http.HandleFunc("/venta", manejadorDeVentas.VentasHandler)
-	http.HandleFunc("/venta/", manejadorDeVentas.VentaPorIDHandler) //placeholder
-
-	// Define el puerto y muestra un mensaje
-	port = ":8080"
-	fmt.Printf("Servidor escuchando en http://localhost%s\n", port)
-
-	// Inicia el servidor HTTP
-	err = http.ListenAndServe(port, nil) // sirve para arrancar un servidor web en el puerto especificado y manejar las peticiones entrantes. El segundo parámetro es nil porque no estoy usando un mux personalizado, sino el predeterminado.
-	if err != nil {
-		fmt.Printf("Error al iniciar el servidor: %s\n", err)
+	log.Println("Servidor escuchando en http://localhost:8080")
+	if err := http.ListenAndServe(":8080", app.routes()); err != nil {
+		log.Fatalf("Error al iniciar el servidor: %v", err)
 	}
 }
