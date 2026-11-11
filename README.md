@@ -10,9 +10,22 @@ Proyecto de página web realizado para la cátedra de Programación Web de la FC
 
 ## Descripción
 
-Mercado Rural es una aplicación web para la compra y venta de animales. Los usuarios pueden registrarse, cargar animales y publicarlos con un precio. Otro usuario puede comprar una publicación; la operación queda registrada en la tabla `Venta` y la publicación pasa a mostrarse como vendida, sin volver a estar disponible.
+- ~~TP1: Esta etapa del proyecto consiste en hacer el primer servidor web local, donde escuche en el puerto 8080, y sirva un HTML estatico.~~
 
-Esta entrega corresponde al **TP5**, que reemplaza la arquitectura de API JSON + JavaScript por una aplicación renderizada en el servidor con [templ](https://templ.guide/). Las vistas se generan en Go y los formularios funcionan con recargas completas de página y el patrón Post/Redirect/Get.
+- ~~TP2: Esta etapa del proyecto consiste en definir una capa de persistencia mediante PostgreSQL. Incluye un pipeline de automatización para la generación de código con sqlc, montado de
+una base de datos con Docker, Tests y un script para automatizar el setup.~~
+
+- ~~TP3: Esta etapa del proyecto consiste en la construcción de una API REST en Go para exponer las entidades del dominio mediante handlers HTTP con operaciones CRUD completas (POST, GET, PUT, DELETE). Conecta la lógica de negocio con la capa de datos de sqlc, incluye manejo y validaciones JSON, estados de respuesta HTTP estándar (201, 200, 204, 404), despliegue containerizado con Docker y una batería de pruebas de integración reproducibles mediante Hurl.~~
+
+- ~~TP4: Interfaz de usuario en HTML, CSS y JavaScript que consume la API REST. Permite crear usuarios, animales y publicaciones, listar publicaciones activas y eliminar registros.~~
+
+- TP5: Esta etapa del proyecto consiste en reemplaza la arquitectura de API JSON + JavaScript por una aplicación renderizada en el servidor con [templ](https://templ.guide/). Las vistas se generan en Go y los formularios funcionan con recargas completas de página y el patrón Post/Redirect/Get.
+
+
+
+## Descripción
+
+Mercado Rural es una aplicación web para la compra y venta de animales. Los usuarios pueden registrarse, cargar animales y publicarlos con un precio. Otro usuario puede comprar una publicación; la operación queda registrada en la tabla `Venta` y la publicación pasa a mostrarse como vendida, sin volver a estar disponible.
 
 La entrega se realiza en la rama `tp5`.
 
