@@ -138,7 +138,7 @@ run-api:
 	@echo "--- Levantando aplicación SSR ---"
 # aca creamos una funcion que se llama cuando se apreta ctrl + c, lo cual detiene el servidor y da de baja el docker
 	@./bin/run-api & ID_SERVIDOR=$$!; \
-	cleanup() { \ 
+	cleanup() { \
 		echo ""; \
 		echo "--- Deteniendo servidor Go ---"; \
 		kill $$ID_SERVIDOR 2>/dev/null || true; \
