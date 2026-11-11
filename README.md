@@ -75,16 +75,10 @@ Mercadorural/
 Desde la raíz del repositorio:
 
 ```bash
-make run-app
+make run-api
 ```
 
-También se puede ejecutar directamente:
-
-```bash
-bash run-app.sh
-```
-
-El comando o script realiza automáticamente:
+El comando realiza automáticamente:
 
 1. Borra contenedores y volúmenes previos.
 2. Ejecuta `sqlc generate`.
