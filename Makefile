@@ -129,8 +129,23 @@ run-api:
 	@echo "-> Cargando esquemas SQL..."
 	@cat $(SCHEMA_DIR)/*.sql | docker compose -f $(COMPOSE_FILE) exec -T $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) > /dev/null
 
+	@echo "-> Liberando puerto 8080..."
+	@fuser -k 8080/tcp 2>/dev/null || true
+
+
 	@echo "--- Levantando aplicación SSR ---"
 	@./bin/run-api & ID_SERVIDOR=$$!; \
+	cleanup() { \
+		echo ""; \
+		echo "--- Deteniendo servidor Go ---"; \
+		kill $$ID_SERVIDOR 2>/dev/null || true; \
+		wait $$ID_SERVIDOR 2>/dev/null || true; \
+		echo "--- Limpiando el entorno de Docker ---"; \
+		docker compose -f $(COMPOSE_FILE) down -v; \
+		echo "Aplicación SSR finalizada."; \
+		exit 0; \
+	}; \
+	trap cleanup INT TERM; \
 	echo "-> Esperando respuesta de http://localhost:8080..."; \
 	TIMEOUT=10; \
 	while [ $$TIMEOUT -gt 0 ] && ! curl -s http://localhost:8080/ > /dev/null 2>&1; do \
@@ -139,16 +154,10 @@ run-api:
 	done; \
 	if [ $$TIMEOUT -eq 0 ]; then \
 		echo "El servidor Go no respondió a tiempo."; \
-		kill $$ID_SERVIDOR 2>/dev/null || true; \
-		wait $$ID_SERVIDOR 2>/dev/null || true; \
-		docker compose -f $(COMPOSE_FILE) down -v; \
-		exit 1; \
+		cleanup; \
 	fi; \
 	echo "-> Aplicación SSR: UP"; \
 	echo "-> Presione Ctrl+C para detener la aplicación."; \
-	wait $$ID_SERVIDOR; \
-	echo "--- Deteniendo servidor Go ---"; \
-	kill $$ID_SERVIDOR 2>/dev/null || true; \
-	echo "--- Limpiando el entorno de Docker ---"; \
-	docker compose -f $(COMPOSE_FILE) down -v; \
-	echo "Aplicación SSR finalizada."
+	while kill -0 $$ID_SERVIDOR 2>/dev/null; do \
+		sleep 1; \
+	done
