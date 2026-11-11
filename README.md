@@ -19,95 +19,100 @@ una base de datos con Docker, Tests y un script para automatizar el setup.~~
 
 - ~~TP4: Interfaz de usuario en HTML, CSS y JavaScript que consume la API REST. Permite crear usuarios, animales y publicaciones, listar publicaciones activas y eliminar registros.~~
 
-- TP5: Esta etapa del proyecto consiste en reemplaza la arquitectura de API JSON + JavaScript por una aplicación renderizada en el servidor con [templ](https://templ.guide/). Las vistas se generan en Go y los formularios funcionan con recargas completas de página y el patrón Post/Redirect/Get.
+- TP5: Esta etapa reemplaza la arquitectura de API JSON + JavaScript por una aplicación renderizada en el servidor con templ. Las vistas se generan en Go y los formularios funcionan con recargas completas de página y el patrón Post/Redirect/Get.
 
+## Flujo de la aplicación
 
+Mercado Rural es una aplicación web para la compra y venta de animales.
 
-## Descripción
-
-Mercado Rural es una aplicación web para la compra y venta de animales. Los usuarios pueden registrarse, cargar animales y publicarlos con un precio. Otro usuario puede comprar una publicación; la operación queda registrada en la tabla `Venta` y la publicación pasa a mostrarse como vendida, sin volver a estar disponible.
-
-La entrega se realiza en la rama `tp5`.
+1. El usuario operador se selecciona desde la barra superior. El selector funciona como placeholder del login; si no existe ningún usuario, se puede crear uno nuevo.
+2. El operador publica un animal. La publicación crea el animal asociado: el animal no existe por separado.
+3. El animal queda con el operador como dueño y con el mismo precio de la publicación.
+4. El operador puede comprar publicaciones activas de otros usuarios, pero no las propias.
+5. Al comprar, se registra una venta y la publicación pasa a estar finalizada.
+6. El operador puede editar o eliminar sus publicaciones mientras estén activas. Las publicaciones finalizadas no se modifican ni se eliminan.
+7. El operador puede eliminar su cuenta. Sus publicaciones activas se eliminan junto con sus animales; las publicaciones finalizadas se conservan para mantener la consistencia de las ventas.
 
 ## Arquitectura
 
-- **Go + `net/http`**: servidor y ruteo.
+- **Go + `net/http`**: servidor, ruteo y manejo de formularios.
 - **templ**: componentes HTML renderizados en el servidor.
 - **PostgreSQL + sqlc**: persistencia y acceso a datos.
-- **Pico.css**: estilos base, vendorizado en `static/pico.min.css`.
+- **Docker Compose**: ejecución de PostgreSQL.
+- **Pico.css**: estilos base.
 - **`static/styles.css`**: estilos propios del proyecto.
 - **Sin JavaScript**: la aplicación no contiene archivos `.js`.
 
-La entidad `Venta` funciona como historial inmutable: se registra al comprar una publicación y no se expone ninguna acción para editarla ni eliminarla. La publicación comprada queda inactiva y se muestra como vendida.
+La tabla `Venta` funciona como historial inmutable: se registra al comprar una publicación y no tiene acciones de edición ni borrado. El historial no se muestra como panel en la interfaz por el momento.
 
 ## Estructura del proyecto
 
 ```text
 Mercadorural/
-├── docker-compose.yml
+├── docker-compose.yml       // Configuración del contenedor
+│
 ├── db/
-│   ├── queries/
-│   ├── schema/
-│   └── sqlc/
+│   ├── queries/                 // Archivos SQL para las operaciones CRUD
+│   ├── schema/                  // Archivos SQL de generación de tablas
+│   └── sqlc/                    // Archivos generados por sqlc y tests
 ├── views/
-│   ├── layout.templ
-│   ├── index.templ
-│   ├── entity_form.templ
-│   ├── entity_list.templ
-│   ├── usuario.templ
-│   ├── animal.templ
-│   ├── venta.templ
-│   ├── view_models.go
-│   └── *_templ.go
+│   ├── layout.templ             // Estructura base de la página
+│   ├── index.templ              // Página principal
+│   ├── entity_form.templ        // Formularios de publicación y edición
+│   ├── entity_list.templ        // Listados de publicaciones propias y ajenas
+│   ├── usuario.templ            // Alta de usuarios
+│   ├── view_models.go           // Modelos usados por las vistas
+│   └── *_templ.go               // Código generado por templ
 ├── static/
-│   ├── pico.min.css
-│   └── styles.css
-├── main.go
-├── server.go
-├── handleUsuario.go
-├── handleAnimales.go
-├── handlePublicaciones.go
-├── helpers.go
-├── run-app.sh
-├── Makefile
-├── go.mod / go.sum
+│   ├── pico.min.css             // Estilos base
+│   └── styles.css               // Estilos propios
+├── go.mod / go.sum              // Dependencias de Go
+├── main.go                      // Punto de entrada de la aplicación
+├── server.go                    // Rutas, operador y renderizado
+├── handleUsuario.go             // Handlers de usuarios
+├── handlePublicaciones.go       // Handlers de publicaciones y compras
+├── helpers.go                   // Validaciones y utilidades
+├── Makefile                     // Automatización de ejecución y tests
 └── README.md
 ```
 
 ## Requisitos
 
-1. [Go](https://go.dev/dl/) 1.27 o superior.
-2. [Docker](https://docs.docker.com/get-docker/) con Docker Compose v2.
-3. [Make](https://www.gnu.org/software/make/).
-4. [sqlc](https://sqlc.dev/) disponible en el `PATH` o en `$(go env GOPATH)/bin/sqlc`.
+1. [Go Compiler](https://go.dev/dl/)
+2. [Docker](https://docs.docker.com/get-docker/)
+3. [Docker Compose](https://docs.docker.com/compose/)
+4. [sqlc](https://sqlc.dev/) disponible en el `PATH`.
+5. [templ](https://templ.guide/) disponible en el `PATH`:
 
-`templ` se instala como dependencia de herramienta del módulo y se ejecuta con `go tool templ`; no hace falta instalarlo globalmente.
-
-## Instalacion
-
-1. Clonar el repositorio.
-   En una terminal (Bash, CMD, Powershell) ejecutar el comando:
-
+   ```bash
+   go install github.com/a-h/templ/cmd/templ@latest
    ```
+
+6. [Make](https://www.gnu.org/software/make/)
+
+El Makefile invoca `sqlc generate` y `templ generate`, por lo que ambos comandos deben estar disponibles en el `PATH`.
+
+## Instalación
+
+1. Clonar el repositorio:
+
+   ```bash
    git clone https://github.com/TpWeb2026/Mercadorural.git
    ```
-   Si ya lo tenes clonado de la entrega pasada, solo queda pararse en esa carpeta y hacer git pull para que traiga todo lo nuevo que se hizo 
 
+2. Ingresar a la carpeta del proyecto:
 
-## Cómo ejecutar
-
-1. Ubicarnos en la carpeta del proyecto.
-
-   ```
+   ```bash
    cd Mercadorural
    ```
 
-2. Una vez ya ubicados en la carpeta, tenemos que ejecutar el siguiente comando:
+## Cómo ejecutar
 
-   ```
-   make run-api
-   ```
+Desde la raíz del proyecto:
 
+```bash
+make run-api
+```
 
 El comando realiza automáticamente:
 
@@ -116,7 +121,7 @@ El comando realiza automáticamente:
 3. Ejecuta `templ generate`.
 4. Compila la aplicación con `go build`.
 5. Levanta PostgreSQL con Docker Compose.
-6. Espera a que la base esté disponible.
+6. Espera a que la base de datos esté disponible.
 7. Carga el esquema de la base.
 8. Ejecuta la aplicación en `http://localhost:8080`.
 9. Al detener la aplicación, borra los contenedores y volúmenes.
@@ -129,26 +134,33 @@ http://localhost:8080
 
 Para detenerla, usar `Ctrl+C`; el script se encarga de la limpieza final.
 
-## Orden recomendado de uso
+## Cómo probar el flujo
 
-1. Crear un usuario vendedor.
-2. Crear un animal seleccionando el usuario como dueño.
-3. Crear una publicación seleccionando el animal y el vendedor.
-4. Crear un segundo usuario para que actúe como comprador.
-5. En la publicación activa, seleccionar el comprador y presionar **Comprar**.
-6. Verificar que la publicación quede marcada como **Vendida** y que la operación aparezca en **Ventas realizadas**.
-7. Probar el borrado de registros no vendidos.
+1. Agregar un usuario con el botón **Agregar usuario**.
+2. Publicar un animal desde **Mis publicaciones**.
+3. Agregar un segundo usuario y seleccionarlo como operador.
+4. Comprar la publicación del primer usuario desde **Publicaciones de otros usuarios**.
+5. Verificar que la publicación comprada desaparezca de los listados (queda finalizada en la base).
+6. Probar la eliminación de una publicación activa y verificar que también se elimine el animal asociado.
+7. Probar la eliminación de una cuenta y verificar que sus publicaciones activas desaparezcan y sus publicaciones finalizadas se conserven en la base.
+
+## Pruebas
+
+Para ejecutar las pruebas unitarias de la capa de datos con una base limpia:
+
+```bash
+make test
+```
 
 ## Notas de implementación
 
 - Los archivos `views/*_templ.go` son generados por templ y no deben editarse a mano.
-- Después de modificar un archivo `.templ`, ejecutar `go tool templ generate` o `make generate`.
+- Después de modificar un archivo `.templ`, ejecutar `templ generate` o `make run-api`.
 - Los precios se envían como texto porque sqlc representa las columnas `NUMERIC` como `string` en Go.
-- `DeleteUsuario` realiza una baja lógica (`activo = false`), mientras que los animales y las publicaciones se eliminan físicamente.
-- La compra se ejecuta en una transacción: se marca la publicación como inactiva y se inserta la venta. Si algo falla, ambas operaciones se revierten.
-- El comprador debe ser un usuario activo distinto del vendedor.
-- Una publicación vendida deja de mostrar el formulario de compra y no puede volver a comprarse.
-- Las ventas son un historial inmutable: no tienen acciones de edición ni borrado.
-- Si un animal o una publicación tiene ventas asociadas, la base rechaza el borrado y la aplicación muestra un mensaje de error.
+- El usuario operador se guarda en una cookie del servidor.
+- La creación de una publicación y su animal se ejecuta en una transacción.
+- La compra se ejecuta en una transacción: se marca la publicación como finalizada y se inserta la venta.
+- Las publicaciones finalizadas se conservan en la base pero no se muestran en la interfaz por el momento.
+- La baja de cuenta se ejecuta en una transacción: elimina las publicaciones activas y sus animales, conserva las finalizadas y marca al usuario como inactivo.
 - Pico.css está vendorizado para que la aplicación funcione sin conexión a internet.
 - No se incluyen archivos JavaScript en la entrega.

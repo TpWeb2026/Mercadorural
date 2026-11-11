@@ -26,6 +26,13 @@ RETURNING *;
 DELETE FROM Animal
 WHERE id = $1;
 
+-- name: DeleteAnimalSiSinPublicaciones :execrows
+DELETE FROM Animal
+WHERE Animal.id = $1
+  AND NOT EXISTS (
+      SELECT 1 FROM Publicacion WHERE Publicacion.id_animal = $1
+  );
+
 -- name: ListAnimales :many
 SELECT id, nombre, raza, id_dueno, precio 
 FROM Animal 

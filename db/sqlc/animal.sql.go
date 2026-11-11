@@ -50,6 +50,22 @@ func (q *Queries) DeleteAnimal(ctx context.Context, id int64) error {
 	return err
 }
 
+const deleteAnimalSiSinPublicaciones = `-- name: DeleteAnimalSiSinPublicaciones :execrows
+DELETE FROM Animal
+WHERE Animal.id = $1
+  AND NOT EXISTS (
+      SELECT 1 FROM Publicacion WHERE Publicacion.id_animal = $1
+  )
+`
+
+func (q *Queries) DeleteAnimalSiSinPublicaciones(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteAnimalSiSinPublicaciones, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const getAnimal = `-- name: GetAnimal :one
 SELECT id, nombre, raza, id_dueno, precio 
 FROM Animal 

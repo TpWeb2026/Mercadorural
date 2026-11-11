@@ -2,12 +2,9 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
-
-	"github.com/lib/pq"
 )
 
 func parseID(valor string) (int64, error) {
@@ -32,9 +29,4 @@ func convertirContacto(valor string) sql.NullString {
 		return sql.NullString{}
 	}
 	return sql.NullString{String: valor, Valid: true}
-}
-
-func esErrorClaveForanea(err error) bool {
-	var pqErr *pq.Error
-	return errors.As(err, &pqErr) && pqErr.Code == "23503"
 }

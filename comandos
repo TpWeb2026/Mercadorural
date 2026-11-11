@@ -2,12 +2,12 @@ La ejecución del proyecto está documentada en README.md.
 
 Comando principal:
 
-    make run-app
+    make run-api
 
 También se puede ejecutar directamente:
 
     bash run-app.sh
 
-El script realiza la limpieza previa, la generación con sqlc y templ, la compilación,
+El comando o script realiza la limpieza previa, la generación con sqlc y templ, la compilación,
 el levantamiento de PostgreSQL, la carga del esquema, la ejecución de la aplicación
 y la limpieza final de contenedores y volúmenes.

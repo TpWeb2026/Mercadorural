@@ -14,26 +14,24 @@ templ UsuarioForm(form UsuarioFormData) {
 			<label for="usuario-contacto">Contacto</label>
 			<input id="usuario-contacto" name="contacto" type="email" autocomplete="email" placeholder="correo@ejemplo.com" value={ form.Contacto }/>
 		</div>
-		<button type="submit" class="btn btn-secondary">Crear usuario</button>
+		<button type="submit" class="btn btn-primary">Crear usuario</button>
 	</form>
 }
 
-templ UsuarioList(usuarios []UsuarioVista) {
-	if len(usuarios) == 0 {
-		<p class="empty-state empty-state--small">Todavía no hay usuarios.</p>
-	} else {
-		<div class="mini-list">
-			for _, usuario := range usuarios {
-				<div class="mini-item">
-					<div class="mini-item__info">
-						<span class="mini-item__title">{ usuario.NombreCompleto }</span>
-						<span class="mini-item__detail">{ usuario.Contacto }</span>
-					</div>
-					<form method="post" action={ urlEliminar("usuario", usuario.ID) }>
-						<button type="submit" class="btn btn-danger">Eliminar usuario</button>
-					</form>
+templ NuevoUsuarioPage(form UsuarioFormData, mensaje string) {
+	@Layout("Nuevo usuario") {
+		<section class="panel">
+			<div class="panel-header">
+				<div>
+					<p class="section-kicker">Usuarios</p>
+					<h1>Agregar usuario</h1>
 				</div>
+			</div>
+			if mensaje != "" {
+				<div class="alert alert-error" role="alert">{ mensaje }</div>
 			}
-		</div>
+			@UsuarioForm(form)
+			<p class="status"><a href="/">Volver al mercado</a></p>
+		</section>
 	}
 }

@@ -18,6 +18,12 @@ SELECT id, id_animal, precio, id_vendedor, activo
 FROM Publicacion
 ORDER BY activo DESC, id DESC;
 
+-- name: ListPublicacionesActivasPorVendedor :many
+SELECT id, id_animal, precio, id_vendedor, activo
+FROM Publicacion
+WHERE id_vendedor = $1 AND activo = true
+ORDER BY id DESC;
+
 -- name: GetPublicacionParaCompra :one
 SELECT id, id_animal, precio, id_vendedor, activo
 FROM Publicacion

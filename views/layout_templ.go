@@ -40,7 +40,7 @@ func Layout(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/static/pico.min.css\"><link rel=\"stylesheet\" href=\"/static/styles.css\"></head><body><header class=\"site-header\"><div class=\"container header-content\"><div><p class=\"eyebrow\">Compra y venta de animales</p><h1>Mercado Rural</h1><p class=\"subtitle\">Publicá tus animales y encontrá nuevas oportunidades en el campo.</p></div><div class=\"logo-mark\" aria-hidden=\"true\">MR</div></div></header><main class=\"container main-content\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/static/pico.min.css\"><link rel=\"stylesheet\" href=\"/static/styles.css\"></head><body><header class=\"site-header\"><div class=\"container header-content\"><div><p class=\"eyebrow\">Compra y venta de animales</p><h1>Mercado Rural</h1><p class=\"subtitle\">Publicá tus animales y encontrá nuevas oportunidades en el campo.</p></div></div></header><main class=\"container main-content\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

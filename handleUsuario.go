@@ -1,12 +1,44 @@
 package main
 
 import (
+	"database/sql"
+	"errors"
 	"log"
 	"net/http"
 	"strings"
 	db "tp2/db/sqlc"
 	"tp2/views"
 )
+
+func (app *application) seleccionarOperador(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Formulario inválido", http.StatusBadRequest)
+		return
+	}
+
+	id, err := parseID(r.PostFormValue("id_usuario"))
+	if err != nil {
+		app.renderPageError(w, r, "Seleccioná un usuario válido.", http.StatusBadRequest)
+		return
+	}
+
+	if _, err := app.consultas.GetUsuario(r.Context(), id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			app.renderPageError(w, r, "El usuario seleccionado no existe o está inactivo.", http.StatusBadRequest)
+			return
+		}
+		log.Printf("buscar operador %d: %v", id, err)
+		app.renderPageError(w, r, "No se pudo verificar el usuario.", http.StatusInternalServerError)
+		return
+	}
+
+	guardarOperadorCookie(w, id)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (app *application) nuevoUsuarioForm(w http.ResponseWriter, r *http.Request) {
+	app.renderNuevoUsuario(w, r, views.UsuarioFormData{}, "", http.StatusOK)
+}
 
 func (app *application) crearUsuario(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
@@ -20,48 +52,92 @@ func (app *application) crearUsuario(w http.ResponseWriter, r *http.Request) {
 		Contacto: strings.TrimSpace(r.PostFormValue("contacto")),
 	}
 
-	data, err := app.buildPageData(r.Context())
-	if err != nil {
-		log.Printf("cargar datos para crear usuario: %v", err)
-		http.Error(w, "Error interno del servidor", http.StatusInternalServerError)
-		return
-	}
-
-	data.UsuarioForm = form
-
 	if form.Nombre == "" || form.Apellido == "" {
-		data.Error = "El nombre y el apellido son obligatorios."
-		app.renderIndex(w, r, data, http.StatusBadRequest)
+		app.renderNuevoUsuario(w, r, form, "El nombre y el apellido son obligatorios.", http.StatusBadRequest)
 		return
 	}
 
-	_, err = app.consultas.CreateUsuario(r.Context(), db.CreateUsuarioParams{
+	usuario, err := app.consultas.CreateUsuario(r.Context(), db.CreateUsuarioParams{
 		Nombre:   form.Nombre,
 		Apellido: form.Apellido,
 		Contacto: convertirContacto(form.Contacto),
 	})
 	if err != nil {
 		log.Printf("crear usuario: %v", err)
-		data.Error = "No se pudo crear el usuario."
-		app.renderIndex(w, r, data, http.StatusInternalServerError)
+		app.renderNuevoUsuario(w, r, form, "No se pudo crear el usuario.", http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/#usuarios", http.StatusSeeOther)
+	guardarOperadorCookie(w, usuario.ID)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (app *application) eliminarUsuario(w http.ResponseWriter, r *http.Request) {
+	operadorID, ok := operadorDeCookie(r)
+	if !ok {
+		app.renderPageError(w, r, "Seleccioná un operador antes de eliminar la cuenta.", http.StatusBadRequest)
+		return
+	}
+
 	id, err := parseID(r.PathValue("id"))
 	if err != nil {
 		app.renderPageError(w, r, "El ID del usuario no es válido.", http.StatusBadRequest)
 		return
 	}
 
-	if err := app.consultas.DeleteUsuario(r.Context(), id); err != nil {
-		log.Printf("eliminar usuario %d: %v", id, err)
-		app.renderPageError(w, r, "No se pudo eliminar el usuario.", http.StatusInternalServerError)
+	if id != operadorID {
+		app.renderPageError(w, r, "Solo podés eliminar tu propia cuenta.", http.StatusForbidden)
 		return
 	}
 
-	http.Redirect(w, r, "/#usuarios", http.StatusSeeOther)
+	if _, err := app.consultas.GetUsuario(r.Context(), id); err != nil {
+		app.renderPageError(w, r, "El usuario no existe o ya está inactivo.", http.StatusNotFound)
+		return
+	}
+
+	tx, err := app.conexion.BeginTx(r.Context(), nil)
+	if err != nil {
+		log.Printf("iniciar transacción de baja de usuario: %v", err)
+		app.renderPageError(w, r, "No se pudo eliminar la cuenta.", http.StatusInternalServerError)
+		return
+	}
+	defer tx.Rollback()
+
+	consultas := app.consultas.WithTx(tx)
+
+	publicaciones, err := consultas.ListPublicacionesActivasPorVendedor(r.Context(), id)
+	if err != nil {
+		log.Printf("listar publicaciones activas del usuario %d: %v", id, err)
+		app.renderPageError(w, r, "No se pudo eliminar la cuenta.", http.StatusInternalServerError)
+		return
+	}
+
+	for _, publicacion := range publicaciones {
+		if err := consultas.DeletePublicacion(r.Context(), publicacion.ID); err != nil {
+			log.Printf("eliminar publicación %d del usuario %d: %v", publicacion.ID, id, err)
+			app.renderPageError(w, r, "No se pudo eliminar la cuenta.", http.StatusInternalServerError)
+			return
+		}
+
+		if _, err := consultas.DeleteAnimalSiSinPublicaciones(r.Context(), publicacion.IDAnimal); err != nil {
+			log.Printf("eliminar animal %d de la publicación %d: %v", publicacion.IDAnimal, publicacion.ID, err)
+			app.renderPageError(w, r, "No se pudo eliminar la cuenta.", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if err := consultas.DeleteUsuario(r.Context(), id); err != nil {
+		log.Printf("eliminar usuario %d: %v", id, err)
+		app.renderPageError(w, r, "No se pudo eliminar la cuenta.", http.StatusInternalServerError)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Printf("confirmar baja del usuario %d: %v", id, err)
+		app.renderPageError(w, r, "No se pudo eliminar la cuenta.", http.StatusInternalServerError)
+		return
+	}
+
+	limpiarOperadorCookie(w)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

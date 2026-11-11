@@ -112,6 +112,51 @@ select {
   padding-bottom: 3rem;
 }
 
+.operator-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.operator-form {
+  display: flex;
+  flex: 1 1 28rem;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+  margin-bottom: 0;
+}
+
+.operator-form label {
+  width: 100%;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.operator-form select {
+  flex: 1 1 14rem;
+  margin-bottom: 0;
+}
+
+.operator-form button {
+  margin-bottom: 0;
+}
+
+.operator-bar > .btn {
+  margin-bottom: 0;
+}
+
 .dashboard {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.85fr);
@@ -236,12 +281,15 @@ select {
   background: #f1eee7;
 }
 
-.form-grid .form-actions {
+.form-actions {
   display: flex;
-  grid-column: 1 / -1;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem 1rem;
+}
+
+.form-grid .form-actions {
+  grid-column: 1 / -1;
 }
 
 .btn {
@@ -375,11 +423,6 @@ select {
   background: rgba(47, 107, 63, 0.13);
 }
 
-.badge-sold {
-  color: #7d4b12;
-  background: rgba(196, 123, 44, 0.18);
-}
-
 .publication-card h3 {
   margin-bottom: 0;
   font-size: 1.05rem;
@@ -435,19 +478,29 @@ select {
 
 .card-actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.account-card {
+  display: grid;
+  gap: 0.2rem;
+  margin-bottom: 0.85rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.account-actions {
+  margin-bottom: 0;
 }
 
 .card-actions form,
 .mini-item form {
   margin-bottom: 0;
-}
-
-.sale-date {
-  flex: 0 0 auto;
-  color: var(--muted);
-  font-size: 0.78rem;
-  white-space: nowrap;
 }
 
 .mini-list {
@@ -540,6 +593,17 @@ select {
 
   .panel {
     padding: 1.1rem;
+  }
+
+  .operator-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .operator-form select,
+  .operator-form button,
+  .operator-bar > .btn {
+    width: 100%;
   }
 
   .form-grid {

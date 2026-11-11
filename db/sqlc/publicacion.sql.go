@@ -158,6 +158,42 @@ func (q *Queries) ListPublicacionesActivas(ctx context.Context) ([]Publicacion, 
 	return items, nil
 }
 
+const listPublicacionesActivasPorVendedor = `-- name: ListPublicacionesActivasPorVendedor :many
+SELECT id, id_animal, precio, id_vendedor, activo
+FROM Publicacion
+WHERE id_vendedor = $1 AND activo = true
+ORDER BY id DESC
+`
+
+func (q *Queries) ListPublicacionesActivasPorVendedor(ctx context.Context, idVendedor int64) ([]Publicacion, error) {
+	rows, err := q.db.QueryContext(ctx, listPublicacionesActivasPorVendedor, idVendedor)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Publicacion
+	for rows.Next() {
+		var i Publicacion
+		if err := rows.Scan(
+			&i.ID,
+			&i.IDAnimal,
+			&i.Precio,
+			&i.IDVendedor,
+			&i.Activo,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const marcarPublicacionVendida = `-- name: MarcarPublicacionVendida :execrows
 UPDATE Publicacion
 SET activo = false

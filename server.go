@@ -7,9 +7,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	db "tp2/db/sqlc"
 	"tp2/views"
+
+	"github.com/a-h/templ"
 )
+
+const operadorCookie = "operador_id"
 
 type application struct {
 	consultas *db.Queries
@@ -20,12 +25,14 @@ func (app *application) routes() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /{$}", app.index)
+	mux.HandleFunc("POST /operador", app.seleccionarOperador)
+	mux.HandleFunc("GET /usuario/nuevo", app.nuevoUsuarioForm)
 	mux.HandleFunc("POST /usuario", app.crearUsuario)
-	mux.HandleFunc("POST /animales", app.crearAnimal)
-	mux.HandleFunc("POST /publicacion", app.crearPublicacion)
-	mux.HandleFunc("POST /publicacion/{id}/comprar", app.comprarPublicacion)
 	mux.HandleFunc("POST /usuario/{id}/eliminar", app.eliminarUsuario)
-	mux.HandleFunc("POST /animales/{id}/eliminar", app.eliminarAnimal)
+	mux.HandleFunc("POST /publicacion", app.crearPublicacion)
+	mux.HandleFunc("GET /publicacion/{id}/editar", app.editarPublicacionForm)
+	mux.HandleFunc("POST /publicacion/{id}/editar", app.actualizarPublicacion)
+	mux.HandleFunc("POST /publicacion/{id}/comprar", app.comprarPublicacion)
 	mux.HandleFunc("POST /publicacion/{id}/eliminar", app.eliminarPublicacion)
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
@@ -33,16 +40,23 @@ func (app *application) routes() http.Handler {
 }
 
 func (app *application) index(w http.ResponseWriter, r *http.Request) {
-	data, err := app.buildPageData(r.Context())
+	operadorID, _ := operadorDeCookie(r)
+
+	data, err := app.buildPageData(r.Context(), operadorID)
 	if err != nil {
 		log.Printf("cargar página principal: %v", err)
 		http.Error(w, "No se pudieron cargar los datos", http.StatusInternalServerError)
 		return
 	}
+
+	if operadorID > 0 && data.Operador == nil {
+		limpiarOperadorCookie(w)
+	}
+
 	app.renderIndex(w, r, data, http.StatusOK)
 }
 
-func (app *application) buildPageData(ctx context.Context) (views.PageData, error) {
+func (app *application) buildPageData(ctx context.Context, operadorID int64) (views.PageData, error) {
 	usuarios, err := app.consultas.ListUsuarios(ctx)
 	if err != nil {
 		return views.PageData{}, fmt.Errorf("listar usuarios: %w", err)
@@ -53,65 +67,35 @@ func (app *application) buildPageData(ctx context.Context) (views.PageData, erro
 		return views.PageData{}, fmt.Errorf("listar animales: %w", err)
 	}
 
-	publicaciones, err := app.consultas.ListPublicaciones(ctx)
+	publicaciones, err := app.consultas.ListPublicacionesActivas(ctx)
 	if err != nil {
 		return views.PageData{}, fmt.Errorf("listar publicaciones: %w", err)
 	}
 
-	ventas, err := app.consultas.ListVentasConDetalle(ctx)
-	if err != nil {
-		return views.PageData{}, fmt.Errorf("listar ventas: %w", err)
-	}
-
 	data := views.PageData{}
-	ventasPorPublicacion := make(map[int64]db.ListVentasConDetalleRow, len(ventas))
-
-	for _, venta := range ventas {
-		ventasPorPublicacion[venta.IDPublicacion] = venta
-		data.Ventas = append(data.Ventas, views.VentaVista{
-			ID:            venta.VentaID,
-			PublicacionID: venta.IDPublicacion,
-			Comprador:     venta.CompradorNombre,
-			Vendedor:      venta.VendedorNombre,
-			Precio:        views.FormatearPrecio(venta.Precio),
-			Fecha:         views.FormatearFecha(venta.Fecha),
-		})
-	}
 	usuariosPorID := make(map[int64]db.Usuario, len(usuarios))
 
 	for _, usuario := range usuarios {
 		usuariosPorID[usuario.ID] = usuario
 		nombre := views.NombreCompleto(usuario.Nombre, usuario.Apellido)
-		data.Usuarios = append(data.Usuarios, views.UsuarioVista{
-			ID:             usuario.ID,
-			NombreCompleto: nombre,
-			Contacto:       views.FormatearContacto(usuario.Contacto),
-		})
-		data.OpcionesUsuarios = append(data.OpcionesUsuarios, views.Opcion{
+		data.Usuarios = append(data.Usuarios, views.Opcion{
 			ID:    usuario.ID,
 			Texto: nombre,
 		})
+	}
+
+	if operador, ok := usuariosPorID[operadorID]; ok {
+		data.Operador = &views.OperadorVista{
+			ID:             operador.ID,
+			NombreCompleto: views.NombreCompleto(operador.Nombre, operador.Apellido),
+			Contacto:       views.FormatearContacto(operador.Contacto),
+		}
 	}
 
 	animalesPorID := make(map[int64]db.Animal, len(animales))
 
 	for _, animal := range animales {
 		animalesPorID[animal.ID] = animal
-		dueno := fmt.Sprintf("Usuario #%d", animal.IDDueno)
-		if usuario, ok := usuariosPorID[animal.IDDueno]; ok {
-			dueno = views.NombreCompleto(usuario.Nombre, usuario.Apellido)
-		}
-		data.Animales = append(data.Animales, views.AnimalVista{
-			ID:     animal.ID,
-			Nombre: animal.Nombre,
-			Raza:   animal.Raza,
-			Dueno:  dueno,
-			Precio: views.FormatearPrecio(animal.Precio),
-		})
-		data.OpcionesAnimales = append(data.OpcionesAnimales, views.Opcion{
-			ID:    animal.ID,
-			Texto: fmt.Sprintf("%s (%s)", animal.Nombre, animal.Raza),
-		})
 	}
 
 	for _, publicacion := range publicaciones {
@@ -127,34 +111,29 @@ func (app *application) buildPageData(ctx context.Context) (views.PageData, erro
 			vendedor = views.NombreCompleto(usuario.Nombre, usuario.Apellido)
 		}
 
-		comprador := ""
-		fechaVenta := ""
-		if venta, ok := ventasPorPublicacion[publicacion.ID]; ok {
-			comprador = venta.CompradorNombre
-			fechaVenta = views.FormatearFecha(venta.Fecha)
+		vista := views.PublicacionVista{
+			ID:       publicacion.ID,
+			Animal:   animalNombre,
+			Raza:     raza,
+			Vendedor: vendedor,
+			Precio:   views.FormatearPrecio(publicacion.Precio),
 		}
 
-		data.Publicaciones = append(data.Publicaciones, views.PublicacionVista{
-			ID:         publicacion.ID,
-			IDVendedor: publicacion.IDVendedor,
-			Animal:     animalNombre,
-			Raza:       raza,
-			Vendedor:   vendedor,
-			Precio:     views.FormatearPrecio(publicacion.Precio),
-			Activa:     publicacion.Activo,
-			Comprador:  comprador,
-			FechaVenta: fechaVenta,
-		})
+		if operadorID > 0 && publicacion.IDVendedor == operadorID {
+			data.PublicacionesPropias = append(data.PublicacionesPropias, vista)
+		} else {
+			data.PublicacionesAjenas = append(data.PublicacionesAjenas, vista)
+		}
 	}
 
 	return data, nil
 }
 
-func (app *application) renderIndex(w http.ResponseWriter, r *http.Request, data views.PageData, status int) {
+func (app *application) renderComponent(w http.ResponseWriter, r *http.Request, componente templ.Component, status int) {
 	var buffer bytes.Buffer
 
-	if err := views.IndexPage(data).Render(r.Context(), &buffer); err != nil {
-		log.Printf("renderizar página principal: %v", err)
+	if err := componente.Render(r.Context(), &buffer); err != nil {
+		log.Printf("renderizar componente: %v", err)
 		http.Error(w, "Error interno del servidor", http.StatusInternalServerError)
 		return
 	}
@@ -167,8 +146,14 @@ func (app *application) renderIndex(w http.ResponseWriter, r *http.Request, data
 	}
 }
 
+func (app *application) renderIndex(w http.ResponseWriter, r *http.Request, data views.PageData, status int) {
+	app.renderComponent(w, r, views.IndexPage(data), status)
+}
+
 func (app *application) renderPageError(w http.ResponseWriter, r *http.Request, mensaje string, status int) {
-	data, err := app.buildPageData(r.Context())
+	operadorID, _ := operadorDeCookie(r)
+
+	data, err := app.buildPageData(r.Context(), operadorID)
 	if err != nil {
 		log.Printf("cargar datos para error: %v", err)
 		http.Error(w, "Error interno del servidor", http.StatusInternalServerError)
@@ -177,4 +162,74 @@ func (app *application) renderPageError(w http.ResponseWriter, r *http.Request, 
 
 	data.Error = mensaje
 	app.renderIndex(w, r, data, status)
+}
+
+func (app *application) renderNuevoUsuario(w http.ResponseWriter, r *http.Request, form views.UsuarioFormData, mensaje string, status int) {
+	app.renderComponent(w, r, views.NuevoUsuarioPage(form, mensaje), status)
+}
+
+func (app *application) renderEditarPublicacion(w http.ResponseWriter, r *http.Request, operador *views.OperadorVista, form views.EdicionPublicacionData, mensaje string, status int) {
+	app.renderComponent(w, r, views.EditarPublicacionPage(operador, form, mensaje), status)
+}
+
+func (app *application) operadorVista(ctx context.Context, id int64) (*views.OperadorVista, error) {
+	operador, err := app.consultas.GetUsuario(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &views.OperadorVista{
+		ID:             operador.ID,
+		NombreCompleto: views.NombreCompleto(operador.Nombre, operador.Apellido),
+		Contacto:       views.FormatearContacto(operador.Contacto),
+	}, nil
+}
+
+func operadorDeCookie(r *http.Request) (int64, bool) {
+	cookie, err := r.Cookie(operadorCookie)
+	if err != nil {
+		return 0, false
+	}
+
+	id, err := parseID(cookie.Value)
+	if err != nil {
+		return 0, false
+	}
+
+	return id, true
+}
+
+func (app *application) operadorActivo(r *http.Request) (int64, bool) {
+	id, ok := operadorDeCookie(r)
+	if !ok {
+		return 0, false
+	}
+
+	if _, err := app.consultas.GetUsuario(r.Context(), id); err != nil {
+		return 0, false
+	}
+
+	return id, true
+}
+
+func guardarOperadorCookie(w http.ResponseWriter, id int64) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     operadorCookie,
+		Value:    strconv.FormatInt(id, 10),
+		Path:     "/",
+		MaxAge:   60 * 60 * 24 * 30,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
+func limpiarOperadorCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     operadorCookie,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
 }

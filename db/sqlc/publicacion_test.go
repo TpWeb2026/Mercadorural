@@ -236,3 +236,89 @@ func TestMarcarPublicacionVendida(t *testing.T) {
 		t.Errorf("Se esperaba 0 filas modificadas en la segunda venta, se obtuvo %d", filas)
 	}
 }
+
+func TestListPublicacionesActivasPorVendedor(t *testing.T) {
+	ctx := context.Background()
+	usuario, animal := crearUsuarioYAnimalPrevios(t, ctx)
+
+	activa, err := testQueries.CreatePublicacion(ctx, CreatePublicacionParams{
+		IDAnimal:   animal.ID,
+		Precio:     "60000.00",
+		IDVendedor: usuario.ID,
+	})
+	if err != nil {
+		t.Fatalf("Fallo al crear la publicacion activa: %v", err)
+	}
+
+	t.Cleanup(func() {
+		testDB.ExecContext(ctx, "DELETE FROM Publicacion WHERE id = $1", activa.ID)
+	})
+
+	finalizada, err := testQueries.CreatePublicacion(ctx, CreatePublicacionParams{
+		IDAnimal:   animal.ID,
+		Precio:     "65000.00",
+		IDVendedor: usuario.ID,
+	})
+	if err != nil {
+		t.Fatalf("Fallo al crear la publicacion finalizada: %v", err)
+	}
+
+	t.Cleanup(func() {
+		testDB.ExecContext(ctx, "DELETE FROM Publicacion WHERE id = $1", finalizada.ID)
+	})
+
+	if _, err := testQueries.MarcarPublicacionVendida(ctx, finalizada.ID); err != nil {
+		t.Fatalf("Fallo al finalizar la publicacion: %v", err)
+	}
+
+	publicaciones, err := testQueries.ListPublicacionesActivasPorVendedor(ctx, usuario.ID)
+	if err != nil {
+		t.Fatalf("Fallo al listar publicaciones activas del vendedor: %v", err)
+	}
+
+	if len(publicaciones) != 1 {
+		t.Fatalf("Se esperaba 1 publicacion activa, se obtuvieron %d", len(publicaciones))
+	}
+
+	if publicaciones[0].ID != activa.ID {
+		t.Errorf("Se esperaba la publicacion %d, se obtuvo %d", activa.ID, publicaciones[0].ID)
+	}
+}
+
+func TestDeleteAnimalSiSinPublicaciones(t *testing.T) {
+	ctx := context.Background()
+	usuario, animal := crearUsuarioYAnimalPrevios(t, ctx)
+
+	publicacion, err := testQueries.CreatePublicacion(ctx, CreatePublicacionParams{
+		IDAnimal:   animal.ID,
+		Precio:     "70000.00",
+		IDVendedor: usuario.ID,
+	})
+	if err != nil {
+		t.Fatalf("Fallo al crear la publicacion: %v", err)
+	}
+
+	t.Cleanup(func() {
+		testDB.ExecContext(ctx, "DELETE FROM Publicacion WHERE id = $1", publicacion.ID)
+	})
+
+	filas, err := testQueries.DeleteAnimalSiSinPublicaciones(ctx, animal.ID)
+	if err != nil {
+		t.Fatalf("Fallo al intentar borrar el animal con publicacion: %v", err)
+	}
+	if filas != 0 {
+		t.Errorf("Se esperaba 0 filas borradas, se obtuvieron %d", filas)
+	}
+
+	if err := testQueries.DeletePublicacion(ctx, publicacion.ID); err != nil {
+		t.Fatalf("Fallo al borrar la publicacion: %v", err)
+	}
+
+	filas, err = testQueries.DeleteAnimalSiSinPublicaciones(ctx, animal.ID)
+	if err != nil {
+		t.Fatalf("Fallo al borrar el animal sin publicaciones: %v", err)
+	}
+	if filas != 1 {
+		t.Errorf("Se esperaba 1 fila borrada, se obtuvieron %d", filas)
+	}
+}

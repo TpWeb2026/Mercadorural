@@ -12,39 +12,18 @@ type Opcion struct {
 	Texto string
 }
 
-type UsuarioVista struct {
+type OperadorVista struct {
 	ID             int64
 	NombreCompleto string
 	Contacto       string
 }
 
-type AnimalVista struct {
-	ID     int64
-	Nombre string
-	Raza   string
-	Dueno  string
-	Precio string
-}
-
 type PublicacionVista struct {
-	ID         int64
-	IDVendedor int64
-	Animal     string
-	Raza       string
-	Vendedor   string
-	Precio     string
-	Activa     bool
-	Comprador  string
-	FechaVenta string
-}
-
-type VentaVista struct {
-	ID            int64
-	PublicacionID int64
-	Comprador     string
-	Vendedor      string
-	Precio        string
-	Fecha         string
+	ID       int64
+	Animal   string
+	Raza     string
+	Vendedor string
+	Precio   string
 }
 
 type UsuarioFormData struct {
@@ -53,30 +32,28 @@ type UsuarioFormData struct {
 	Contacto string
 }
 
-type AnimalFormData struct {
-	Nombre  string
-	Raza    string
-	IDDueno int64
-	Precio  string
+type PublicacionFormData struct {
+	NombreAnimal string
+	Raza         string
+	Precio       string
 }
 
-type PublicacionFormData struct {
-	IDAnimal   int64
-	IDVendedor int64
-	Precio     string
+type EdicionPublicacionData struct {
+	PublicacionID int64
+	IDAnimal      int64
+	NombreAnimal  string
+	Raza          string
+	Precio        string
 }
 
 type PageData struct {
-	Usuarios         []UsuarioVista
-	Animales         []AnimalVista
-	Publicaciones    []PublicacionVista
-	Ventas           []VentaVista
-	OpcionesUsuarios []Opcion
-	OpcionesAnimales []Opcion
-	UsuarioForm      UsuarioFormData
-	AnimalForm       AnimalFormData
-	PublicacionForm  PublicacionFormData
-	Error            string
+	Operador             *OperadorVista
+	Usuarios             []Opcion
+	PublicacionesPropias []PublicacionVista
+	PublicacionesAjenas  []PublicacionVista
+	PublicacionForm      PublicacionFormData
+	UsuarioForm          UsuarioFormData
+	Error                string
 }
 
 func NombreCompleto(nombre, apellido string) string {
@@ -98,27 +75,14 @@ func FormatearPrecio(precio string) string {
 	return fmt.Sprintf("$ %.2f", valor)
 }
 
-func FormatearFecha(fecha sql.NullTime) string {
-	if !fecha.Valid {
-		return "Sin fecha"
-	}
-	return fecha.Time.Format("02/01/2006 15:04")
-}
-
-func compradoresDisponibles(usuarios []Opcion, vendedorID int64) []Opcion {
-	compradores := make([]Opcion, 0, len(usuarios))
-	for _, usuario := range usuarios {
-		if usuario.ID != vendedorID {
-			compradores = append(compradores, usuario)
-		}
-	}
-	return compradores
-}
-
 func urlEliminar(tipo string, id int64) string {
 	return fmt.Sprintf("/%s/%d/eliminar", tipo, id)
 }
 
 func urlComprar(id int64) string {
 	return fmt.Sprintf("/publicacion/%d/comprar", id)
+}
+
+func urlEditar(id int64) string {
+	return fmt.Sprintf("/publicacion/%d/editar", id)
 }

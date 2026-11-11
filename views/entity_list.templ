@@ -2,9 +2,9 @@ package views
 
 import "strconv"
 
-templ PublicacionList(publicaciones []PublicacionVista, usuarios []Opcion) {
+templ PublicacionesPropiasList(publicaciones []PublicacionVista) {
 	if len(publicaciones) == 0 {
-		<p class="empty-state">No hay publicaciones. Creá la primera con el formulario.</p>
+		<p class="empty-state">Todavía no publicaste ningún animal.</p>
 	} else {
 		<div class="card-list">
 			for _, publicacion := range publicaciones {
@@ -13,45 +13,48 @@ templ PublicacionList(publicaciones []PublicacionVista, usuarios []Opcion) {
 						<h3>{ publicacion.Animal }</h3>
 						<div class="publication-card__price-status">
 							<span class="price">{ publicacion.Precio }</span>
-							if publicacion.Activa {
-								<span class="badge badge-active">En venta</span>
-							} else {
-								<span class="badge badge-sold">Vendida</span>
-							}
+							<span class="badge badge-active">En venta</span>
+						</div>
+					</div>
+					<ul class="publication-meta">
+						<li>Raza: { publicacion.Raza }</li>
+						<li>Publicación #{ strconv.FormatInt(publicacion.ID, 10) }</li>
+					</ul>
+					<div class="card-actions">
+						<a class="btn btn-secondary" href={ urlEditar(publicacion.ID) }>Editar</a>
+						<form method="post" action={ urlEliminar("publicacion", publicacion.ID) }>
+							<button type="submit" class="btn btn-danger">Eliminar</button>
+						</form>
+					</div>
+				</article>
+			}
+		</div>
+	}
+}
+
+templ PublicacionesAjenasList(publicaciones []PublicacionVista, puedeComprar bool) {
+	if len(publicaciones) == 0 {
+		<p class="empty-state">No hay publicaciones de otros usuarios.</p>
+	} else {
+		<div class="card-list">
+			for _, publicacion := range publicaciones {
+				<article class="publication-card">
+					<div class="publication-card__top">
+						<h3>{ publicacion.Animal }</h3>
+						<div class="publication-card__price-status">
+							<span class="price">{ publicacion.Precio }</span>
+							<span class="badge badge-active">En venta</span>
 						</div>
 					</div>
 					<ul class="publication-meta">
 						<li>Raza: { publicacion.Raza }</li>
 						<li>Vendedor: { publicacion.Vendedor }</li>
 						<li>Publicación #{ strconv.FormatInt(publicacion.ID, 10) }</li>
-						if !publicacion.Activa {
-							if publicacion.Comprador != "" {
-								<li>Comprador: { publicacion.Comprador }</li>
-							}
-							if publicacion.FechaVenta != "" {
-								<li>Fecha de venta: { publicacion.FechaVenta }</li>
-							}
-						}
 					</ul>
-					if publicacion.Activa {
-						<div class="compra-box">
-							<form method="post" action={ urlComprar(publicacion.ID) } class="compra-form">
-								<label for={ "comprador-" + strconv.FormatInt(publicacion.ID, 10) }>Comprar como</label>
-								<select id={ "comprador-" + strconv.FormatInt(publicacion.ID, 10) } name="id_comprador" required disabled?={ len(compradoresDisponibles(usuarios, publicacion.IDVendedor)) == 0 }>
-									<option value="">Seleccioná comprador</option>
-									for _, comprador := range compradoresDisponibles(usuarios, publicacion.IDVendedor) {
-										<option value={ strconv.FormatInt(comprador.ID, 10) }>{ comprador.Texto }</option>
-									}
-								</select>
-								<button type="submit" class="btn btn-primary" disabled?={ len(compradoresDisponibles(usuarios, publicacion.IDVendedor)) == 0 }>Comprar</button>
-							</form>
-							if len(compradoresDisponibles(usuarios, publicacion.IDVendedor)) == 0 {
-								<p class="status">No hay otros usuarios disponibles para comprar.</p>
-							}
-						</div>
+					if puedeComprar {
 						<div class="card-actions">
-							<form method="post" action={ urlEliminar("publicacion", publicacion.ID) }>
-								<button type="submit" class="btn btn-danger">Eliminar publicación</button>
+							<form method="post" action={ urlComprar(publicacion.ID) }>
+								<button type="submit" class="btn btn-primary">Comprar</button>
 							</form>
 						</div>
 					}
