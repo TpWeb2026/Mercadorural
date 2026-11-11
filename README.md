@@ -181,4 +181,4 @@ make db-down
 
 ## Entrega
 
-La entrega se sube al repositorio en la rama `tp5`. En Classroom solo un integrante del grupo realiza la entrega e indica que el proyecto fue subido al repositorio.
+La entrega se sube al repositorio en la rama `tp5`.
