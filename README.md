@@ -88,7 +88,7 @@ El comando o script realiza automáticamente:
 
 1. Borra contenedores y volúmenes previos.
 2. Ejecuta `sqlc generate`.
-3. Ejecuta `go tool templ generate`.
+3. Ejecuta `templ generate`.
 4. Compila la aplicación con `go build`.
 5. Levanta PostgreSQL con Docker Compose.
 6. Espera a que la base esté disponible.
@@ -104,31 +104,6 @@ http://localhost:8080
 
 Para detenerla, usar `Ctrl+C`; el script se encarga de la limpieza final.
 
-### Ejecución manual
-
-```bash
-docker compose down -v
-go tool templ generate
-go run .
-```
-
-En ese caso, la base y el esquema deben prepararse por separado con Docker Compose.
-
-## Rutas
-
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/` | Página principal con formularios y listados |
-| POST | `/usuario` | Crea un usuario |
-| POST | `/animales` | Crea un animal |
-| POST | `/publicacion` | Crea una publicación |
-| POST | `/publicacion/{id}/comprar` | Registra una venta y marca la publicación como vendida |
-| POST | `/usuario/{id}/eliminar` | Da de baja un usuario |
-| POST | `/animales/{id}/eliminar` | Elimina un animal |
-| POST | `/publicacion/{id}/eliminar` | Elimina una publicación |
-
-Los formularios usan `POST` y redirigen con `303 See Other` a la sección correspondiente de la página principal.
-
 ## Orden recomendado de uso
 
 1. Crear un usuario vendedor.
@@ -138,32 +113,6 @@ Los formularios usan `POST` y redirigen con `303 See Other` a la sección corres
 5. En la publicación activa, seleccionar el comprador y presionar **Comprar**.
 6. Verificar que la publicación quede marcada como **Vendida** y que la operación aparezca en **Ventas realizadas**.
 7. Probar el borrado de registros no vendidos.
-
-## Pruebas y verificación
-
-Para ejecutar las pruebas unitarias con una base limpia:
-
-```bash
-make test
-```
-
-Para regenerar el código de templ y sqlc:
-
-```bash
-make generate
-```
-
-Para formatear el código Go y los archivos templ:
-
-```bash
-make fmt
-```
-
-Para bajar contenedores y volúmenes:
-
-```bash
-make db-down
-```
 
 ## Notas de implementación
 
