@@ -24,6 +24,7 @@ type PublicacionVista struct {
 	Raza     string
 	Vendedor string
 	Precio   string
+	Activa   bool
 }
 
 type UsuarioFormData struct {

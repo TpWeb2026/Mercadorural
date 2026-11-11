@@ -81,8 +81,8 @@ Mercadorural/
 1. [Go Compiler](https://go.dev/dl/)
 2. [Docker](https://docs.docker.com/get-docker/)
 3. [Docker Compose](https://docs.docker.com/compose/)
-4. [sqlc](https://sqlc.dev/) disponible en el `PATH`.
-5. [templ](https://templ.guide/) disponible en el `PATH`:
+4. [sqlc](https://sqlc.dev/)
+5. [templ](https://templ.guide/)
 
    ```bash
    go install github.com/a-h/templ/cmd/templ@latest
@@ -111,7 +111,7 @@ El Makefile invoca `sqlc generate` y `templ generate`, por lo que ambos comandos
 Desde la raíz del proyecto:
 
 ```bash
-make run-api
+make run-app
 ```
 
 El comando realiza automáticamente:
@@ -140,7 +140,7 @@ Para detenerla, usar `Ctrl+C`; el script se encarga de la limpieza final.
 2. Publicar un animal desde **Mis publicaciones**.
 3. Agregar un segundo usuario y seleccionarlo como operador.
 4. Comprar la publicación del primer usuario desde **Publicaciones de otros usuarios**.
-5. Verificar que la publicación comprada desaparezca de los listados (queda finalizada en la base).
+5. Verificar que la publicación comprada desaparezca de los listados (queda finalizada en la base de datos).
 6. Probar la eliminación de una publicación activa y verificar que también se elimine el animal asociado.
 7. Probar la eliminación de una cuenta y verificar que sus publicaciones activas desaparezcan y sus publicaciones finalizadas se conserven en la base.
 
@@ -154,13 +154,9 @@ make test
 
 ## Notas de implementación
 
-- Los archivos `views/*_templ.go` son generados por templ y no deben editarse a mano.
-- Después de modificar un archivo `.templ`, ejecutar `templ generate` o `make run-api`.
 - Los precios se envían como texto porque sqlc representa las columnas `NUMERIC` como `string` en Go.
 - El usuario operador se guarda en una cookie del servidor.
 - La creación de una publicación y su animal se ejecuta en una transacción.
 - La compra se ejecuta en una transacción: se marca la publicación como finalizada y se inserta la venta.
-- Las publicaciones finalizadas se conservan en la base pero no se muestran en la interfaz por el momento.
 - La baja de cuenta se ejecuta en una transacción: elimina las publicaciones activas y sus animales, conserva las finalizadas y marca al usuario como inactivo.
-- Pico.css está vendorizado para que la aplicación funcione sin conexión a internet.
-- No se incluyen archivos JavaScript en la entrega.
+- Pico.css está vendorizado (descargado) para que la aplicación funcione sin conexión a internet.

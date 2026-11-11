@@ -67,7 +67,7 @@ func (app *application) buildPageData(ctx context.Context, operadorID int64) (vi
 		return views.PageData{}, fmt.Errorf("listar animales: %w", err)
 	}
 
-	publicaciones, err := app.consultas.ListPublicacionesActivas(ctx)
+	publicaciones, err := app.consultas.ListPublicaciones(ctx)
 	if err != nil {
 		return views.PageData{}, fmt.Errorf("listar publicaciones: %w", err)
 	}
@@ -117,6 +117,7 @@ func (app *application) buildPageData(ctx context.Context, operadorID int64) (vi
 			Raza:     raza,
 			Vendedor: vendedor,
 			Precio:   views.FormatearPrecio(publicacion.Precio),
+			Activa:   publicacion.Activo,
 		}
 
 		if operadorID > 0 && publicacion.IDVendedor == operadorID {

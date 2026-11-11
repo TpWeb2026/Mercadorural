@@ -13,19 +13,25 @@ templ PublicacionesPropiasList(publicaciones []PublicacionVista) {
 						<h3>{ publicacion.Animal }</h3>
 						<div class="publication-card__price-status">
 							<span class="price">{ publicacion.Precio }</span>
-							<span class="badge badge-active">En venta</span>
+							if publicacion.Activa {
+								<span class="badge badge-active">En venta</span>
+							} else {
+								<span class="badge badge-sold">Finalizada</span>
+							}
 						</div>
 					</div>
 					<ul class="publication-meta">
 						<li>Raza: { publicacion.Raza }</li>
 						<li>Publicación #{ strconv.FormatInt(publicacion.ID, 10) }</li>
 					</ul>
-					<div class="card-actions">
-						<a class="btn btn-secondary" href={ urlEditar(publicacion.ID) }>Editar</a>
-						<form method="post" action={ urlEliminar("publicacion", publicacion.ID) }>
-							<button type="submit" class="btn btn-danger">Eliminar</button>
-						</form>
-					</div>
+					if publicacion.Activa {
+						<div class="card-actions">
+							<a class="btn btn-secondary" href={ urlEditar(publicacion.ID) }>Editar</a>
+							<form method="post" action={ urlEliminar("publicacion", publicacion.ID) }>
+								<button type="submit" class="btn btn-danger">Eliminar</button>
+							</form>
+						</div>
+					}
 				</article>
 			}
 		</div>
@@ -43,7 +49,11 @@ templ PublicacionesAjenasList(publicaciones []PublicacionVista, puedeComprar boo
 						<h3>{ publicacion.Animal }</h3>
 						<div class="publication-card__price-status">
 							<span class="price">{ publicacion.Precio }</span>
-							<span class="badge badge-active">En venta</span>
+							if publicacion.Activa {
+								<span class="badge badge-active">En venta</span>
+							} else {
+								<span class="badge badge-sold">Finalizada</span>
+							}
 						</div>
 					</div>
 					<ul class="publication-meta">
@@ -51,7 +61,7 @@ templ PublicacionesAjenasList(publicaciones []PublicacionVista, puedeComprar boo
 						<li>Vendedor: { publicacion.Vendedor }</li>
 						<li>Publicación #{ strconv.FormatInt(publicacion.ID, 10) }</li>
 					</ul>
-					if puedeComprar {
+					if publicacion.Activa && puedeComprar {
 						<div class="card-actions">
 							<form method="post" action={ urlComprar(publicacion.ID) }>
 								<button type="submit" class="btn btn-primary">Comprar</button>

@@ -4,7 +4,7 @@ DB_USER=postgres
 DB_NAME=tp2
 SCHEMA_DIR=db/schema
 
-.PHONY: test  test-api  run-api
+.PHONY: test  test-api  run-app
  # eso se usa para evitar que si hay carpetas o archivos llamado test generen conflictos, diciendo que make es un comando y no un archivo
 
  #se crea la etiqueta test, para que cuando queramos ejecutar make test, se ejecute solo la etiqueta que se llama test, o sea solo esta
@@ -49,7 +49,7 @@ test:
 	docker compose -f $(COMPOSE_FILE) down -v
 
 
-# -------------- PRUEBAS DE LA INTEGRACION DE LA API -------------
+# -------------- PRUEBAS DE LA INTEGRACION DE LA API (Deprecado en TP5) -------------
 
 test-api:
 
@@ -100,7 +100,7 @@ test-api:
 	fi; \
 	echo "Pruebas de integración finalizadas con éxito"
 
-run-api:
+run-app:
 
 	# Usamos las barras invertidas para mantener las variables dentro
 	# de una misma terminal durante toda la ejecución.

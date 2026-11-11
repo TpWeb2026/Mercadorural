@@ -423,6 +423,11 @@ select {
   background: rgba(47, 107, 63, 0.13);
 }
 
+.badge-sold {
+  color: #7d4b12;
+  background: rgba(196, 123, 44, 0.18);
+}
+
 .publication-card h3 {
   margin-bottom: 0;
   font-size: 1.05rem;
