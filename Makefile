@@ -129,13 +129,16 @@ run-api:
 	@echo "-> Cargando esquemas SQL..."
 	@cat $(SCHEMA_DIR)/*.sql | docker compose -f $(COMPOSE_FILE) exec -T $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) > /dev/null
 
+#esto es necesario porque si hay otra cosa escuchando en el puerto no anda
+
 	@echo "-> Liberando puerto 8080..."
 	@fuser -k 8080/tcp 2>/dev/null || true
 
 
 	@echo "--- Levantando aplicación SSR ---"
+# aca creamos una funcion que se llama cuando se apreta ctrl + c, lo cual detiene el servidor y da de baja el docker
 	@./bin/run-api & ID_SERVIDOR=$$!; \
-	cleanup() { \
+	cleanup() { \ 
 		echo ""; \
 		echo "--- Deteniendo servidor Go ---"; \
 		kill $$ID_SERVIDOR 2>/dev/null || true; \
