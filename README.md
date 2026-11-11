@@ -83,13 +83,31 @@ Mercadorural/
 
 `templ` se instala como dependencia de herramienta del módulo y se ejecuta con `go tool templ`; no hace falta instalarlo globalmente.
 
+## Instalacion
+
+1. Clonar el repositorio.
+   En una terminal (Bash, CMD, Powershell) ejecutar el comando:
+
+   ```
+   git clone https://github.com/TpWeb2026/Mercadorural.git
+   ```
+   Si ya lo tenes clonado de la entrega pasada, solo queda pararse en esa carpeta y hacer git pull para que traiga todo lo nuevo que se hizo 
+
+
 ## Cómo ejecutar
 
-Desde la raíz del repositorio:
+1. Ubicarnos en la carpeta del proyecto.
 
-```bash
-make run-api
-```
+   ```
+   cd Mercadorural
+   ```
+
+2. Una vez ya ubicados en la carpeta, tenemos que ejecutar el siguiente comando:
+
+   ```
+   make run-api
+   ```
+
 
 El comando realiza automáticamente:
 
@@ -134,7 +152,3 @@ Para detenerla, usar `Ctrl+C`; el script se encarga de la limpieza final.
 - Si un animal o una publicación tiene ventas asociadas, la base rechaza el borrado y la aplicación muestra un mensaje de error.
 - Pico.css está vendorizado para que la aplicación funcione sin conexión a internet.
 - No se incluyen archivos JavaScript en la entrega.
-
-## Entrega
-
-La entrega se sube al repositorio en la rama `tp5`.
