@@ -1,0 +1,58 @@
+package views
+
+templ PublicacionForm(form PublicacionFormData) {
+	<form method="post" action="/publicacion" class="form-grid">
+		<div class="field">
+			<label for="publicacion-nombre-animal">Nombre del animal</label>
+			<input id="publicacion-nombre-animal" name="nombre_animal" type="text" value={ form.NombreAnimal } required/>
+		</div>
+		<div class="field">
+			<label for="publicacion-raza">Raza</label>
+			<input id="publicacion-raza" name="raza" type="text" value={ form.Raza } required/>
+		</div>
+		<div class="field">
+			<label for="publicacion-precio">Precio (ARS)</label>
+			<input id="publicacion-precio" name="precio" type="number" min="0" step="0.01" placeholder="150000.00" value={ form.Precio } required/>
+		</div>
+		<div class="form-actions">
+			<button type="submit" class="btn btn-primary">Publicar animal</button>
+		</div>
+	</form>
+}
+
+templ EditarPublicacionPage(operador *OperadorVista, form EdicionPublicacionData, mensaje string) {
+	@Layout("Editar publicación") {
+		<section class="panel">
+			<div class="panel-header">
+				<div>
+					<p class="section-kicker">Mi publicación</p>
+					<h1>Editar publicación</h1>
+				</div>
+			</div>
+			if operador != nil {
+				<p class="status">Operando como { operador.NombreCompleto }.</p>
+			}
+			if mensaje != "" {
+				<div class="alert alert-error" role="alert">{ mensaje }</div>
+			}
+			<form method="post" action={ urlEditar(form.PublicacionID) } class="form-stack">
+				<div class="field">
+					<label for="editar-nombre-animal">Nombre del animal</label>
+					<input id="editar-nombre-animal" name="nombre_animal" type="text" value={ form.NombreAnimal } required/>
+				</div>
+				<div class="field">
+					<label for="editar-raza">Raza</label>
+					<input id="editar-raza" name="raza" type="text" value={ form.Raza } required/>
+				</div>
+				<div class="field">
+					<label for="editar-precio">Precio (ARS)</label>
+					<input id="editar-precio" name="precio" type="number" min="0" step="0.01" value={ form.Precio } required/>
+				</div>
+				<div class="form-actions">
+					<button type="submit" class="btn btn-primary">Guardar cambios</button>
+					<a class="btn btn-secondary" href="/">Cancelar</a>
+				</div>
+			</form>
+		</section>
+	}
+}
