@@ -92,8 +92,19 @@ func (app *application) crearPublicacion(w http.ResponseWriter, r *http.Request)
 		app.renderIndex(w, r, data, http.StatusInternalServerError)
 		return
 	}
+	// para el rendenrizado con htmx, se saca el http.redirect para que no recargue toda la pagina completa
+	//http.Redirect(w, r, "/#mis-publicaciones", http.StatusSeeOther)
 
-	http.Redirect(w, r, "/#mis-publicaciones", http.StatusSeeOther)
+	// Volvemos a consultar la base de datos para traer la lista con el animal recién creado
+	datosActualizados, err := app.buildPageData(r.Context(), operadorID)
+	if err != nil {
+		log.Printf("recargar publicaciones tras crear: %v", err)
+		http.Error(w, "Error al actualizar la lista", http.StatusInternalServerError)
+		return
+	}
+
+	// Devolvemos ÚNICAMENTE el componente de la lista propia (sin recargar toda la página)
+	app.renderComponent(w, r, views.PublicacionesPropiasList(datosActualizados.PublicacionesPropias), http.StatusOK)
 }
 
 func (app *application) editarPublicacionForm(w http.ResponseWriter, r *http.Request) {
