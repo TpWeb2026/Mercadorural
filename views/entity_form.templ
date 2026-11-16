@@ -2,13 +2,13 @@ package views
 
 templ PublicacionForm(form PublicacionFormData) {
 	<form
-		id="form-publicacion"
-		method="post"
-		action="/publicacion"
-		hx-post="/publicacion"
-		hx-target="#lista-mis-publicaciones"
-		hx-swap="outerHTML"
-		class="form-grid"
+    	method="post"
+    	action="/publicacion"
+    	hx-post="/publicacion"
+    	hx-target="#lista-mis-publicaciones"
+    	hx-swap="outerHTML"
+    	hx-on:htmx:after:swap="this.reset()"
+    	class="form-grid"
 	>
 		<div class="field">
 			<label for="publicacion-nombre-animal">Nombre del animal</label>

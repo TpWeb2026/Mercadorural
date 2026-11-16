@@ -26,7 +26,7 @@ func PublicacionForm(form PublicacionFormData) templ.Component {
 		}
 		ctx = templ.InitializeContext(ctx)
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form id=\"form-publicacion\" method=\"post\" action=\"/publicacion\" hx-post=\"/publicacion\" hx-target=\"#lista-mis-publicaciones\" hx-swap=\"outerHTML\" class=\"form-grid\"><div class=\"field\"><label for=\"publicacion-nombre-animal\">Nombre del animal</label> <input id=\"publicacion-nombre-animal\" name=\"nombre_animal\" type=\"text\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form method=\"post\" action=\"/publicacion\" hx-post=\"/publicacion\" hx-target=\"#lista-mis-publicaciones\" hx-swap=\"outerHTML\" hx-on:htmx:after:swap=\"this.reset()\" class=\"form-grid\"><div class=\"field\"><label for=\"publicacion-nombre-animal\">Nombre del animal</label> <input id=\"publicacion-nombre-animal\" name=\"nombre_animal\" type=\"text\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
