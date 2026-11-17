@@ -96,14 +96,14 @@ func (app *application) crearPublicacion(w http.ResponseWriter, r *http.Request)
 	//http.Redirect(w, r, "/#mis-publicaciones", http.StatusSeeOther)
 
 	//Esto se hizo asi porque esta en las filminas asi
-	if r.Header.Get("HX-Request") == "true" {
-		dataActualizada, err := app.buildPageData(r.Context(), operadorID)
+	if r.Header.Get("HX-Request") == "true" { // esto distigue una solicitud htmx enviada por ajax de un envio de formulario html
+		dataActualizada, err := app.buildPageData(r.Context(), operadorID) // llamada ala DB,obteniendo la lista de entidades con el nuevo elemento creado
 		if err != nil {
 			log.Printf("recargar publicaciones tras crear: %v", err)
 			http.Error(w, "Error al actualizar la lista", http.StatusInternalServerError)
 			return
 		}
-		views.PublicacionesPropiasList(dataActualizada.PublicacionesPropias).Render(r.Context(), w)
+		views.PublicacionesPropiasList(dataActualizada.PublicacionesPropias).Render(r.Context(), w) // se renderiza en la respuesta http
 		return
 	}
 
@@ -420,6 +420,15 @@ func (app *application) eliminarPublicacion(w http.ResponseWriter, r *http.Reque
 	if err := tx.Commit(); err != nil {
 		log.Printf("confirmar eliminación de publicación %d: %v", publicacion.ID, err)
 		app.renderPageError(w, r, "No se pudo eliminar la publicación.", http.StatusInternalServerError)
+		return
+	}
+
+	//Interceptamos la petición si viene de HTMX
+	if r.Header.Get("HX-Request") == "true" {
+		// Respondemos con un estado 200 OK y el body vacío.
+		// HTMX recibe esto, y como tiene hx-swap="outerHTML",
+		// reemplaza la tarjeta con este "vacío", haciéndola desaparecer.
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 

@@ -1,9 +1,12 @@
 package views
 
 templ PublicacionForm(form PublicacionFormData) {
+	// hx-post: Manda los datos del form sin recargar la página a la ruta "/publicacion".
+	// hx-target: Busca el elemento con id="lista-mis-publicaciones" para inyectarle la respuesta.
+	// hx-swap="outerHTML": Agarra el target completo y lo reemplaza por el HTML nuevo.
 	<form
     	method="post"
-    	action="/publicacion"
+    	action="/publicacion" 
     	hx-post="/publicacion"
     	hx-target="#lista-mis-publicaciones"
     	hx-swap="outerHTML"

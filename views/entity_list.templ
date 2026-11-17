@@ -28,9 +28,17 @@ templ PublicacionesPropiasList(publicaciones []PublicacionVista) {
 						if publicacion.Activa {
 							<div class="card-actions">
 								<a class="btn btn-secondary" href={ urlEditar(publicacion.ID) }>Editar</a>
-								<form method="post" action={ urlEliminar("publicacion", publicacion.ID) }>
-									<button type="submit" class="btn btn-danger">Eliminar</button>
-								</form>
+								
+								// Reemplazamos el <form> tradicional por un botón HTMX
+								<button 
+									type="button" 
+									class="btn btn-danger"
+									hx-post={ urlEliminar("publicacion", publicacion.ID) }
+									hx-target="closest article"
+									hx-swap="outerHTML"
+									hx-confirm="¿Estás seguro de que querés eliminar esta publicación?"
+								>Eliminar
+								</button>
 							</div>
 						}
 					</article>
