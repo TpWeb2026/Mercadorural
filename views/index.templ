@@ -1,0 +1,77 @@
+package views
+
+import "strconv"
+
+templ IndexPage(data PageData) {
+	@Layout("Mercado Rural") {
+		if data.Error != "" {
+			<div class="alert alert-error" role="alert">{ data.Error }</div>
+		}
+		<section class="operator-bar" aria-label="Selector de operador">
+			<form method="post" action="/operador" class="operator-form">
+				<label for="operador">Usuario operador</label>
+				<select id="operador" name="id_usuario" required disabled?={ len(data.Usuarios) == 0 }>
+					<option value="">Seleccioná un usuario</option>
+					for _, usuario := range data.Usuarios {
+						<option value={ strconv.FormatInt(usuario.ID, 10) } selected?={ data.Operador != nil && data.Operador.ID == usuario.ID }>{ usuario.Texto }</option>
+					}
+				</select>
+				<button type="submit" class="btn btn-primary" disabled?={ len(data.Usuarios) == 0 }>Usar</button>
+			</form>
+			<a class="btn btn-secondary" href="/usuario/nuevo">Agregar usuario</a>
+		</section>
+		<div class="dashboard">
+			<div class="main-column">
+				<section id="mis-publicaciones" class="panel panel-primary" aria-labelledby="mis-publicaciones-title">
+					<div class="panel-header">
+						<div>
+							<p class="section-kicker">Mis publicaciones</p>
+							<h2 id="mis-publicaciones-title">Publicar y administrar</h2>
+						</div>
+						<span class="count-badge">{ strconv.Itoa(len(data.PublicacionesPropias)) }</span>
+					</div>
+					if data.Operador != nil {
+						@PublicacionForm(data.PublicacionForm)
+						@PublicacionesPropiasList(data.PublicacionesPropias)
+					} else {
+						<p class="empty-state">Seleccioná un operador para publicar y administrar tus publicaciones.</p>
+					}
+				</section>
+				<section id="publicaciones-ajenas" class="panel" aria-labelledby="publicaciones-ajenas-title">
+					<div class="panel-header">
+						<div>
+							<p class="section-kicker">Mercado</p>
+							<h2 id="publicaciones-ajenas-title">Publicaciones de otros usuarios</h2>
+						</div>
+						<span class="count-badge">{ strconv.Itoa(len(data.PublicacionesAjenas)) }</span>
+					</div>
+					@PublicacionesAjenasList(data.PublicacionesAjenas, data.Operador != nil)
+					if data.Operador == nil {
+						<p class="status">Seleccioná un operador para comprar publicaciones.</p>
+					}
+				</section>
+			</div>
+			<aside class="sidebar" aria-label="Cuenta">
+				<section id="mi-cuenta" class="panel" aria-labelledby="mi-cuenta-title">
+					<div class="panel-header">
+						<div>
+							<p class="section-kicker">Operador</p>
+							<h2 id="mi-cuenta-title">Mi cuenta</h2>
+						</div>
+					</div>
+					if data.Operador != nil {
+						<div class="account-card">
+							<span class="mini-item__title">{ data.Operador.NombreCompleto }</span>
+							<span class="mini-item__detail">{ data.Operador.Contacto }</span>
+						</div>
+						<form method="post" action={ urlEliminar("usuario", data.Operador.ID) } class="account-actions">
+							<button type="submit" class="btn btn-danger">Eliminar mi cuenta</button>
+						</form>
+					} else {
+						<p class="empty-state empty-state--small">Seleccioná un operador para ver tu cuenta.</p>
+					}
+				</section>
+			</aside>
+		</div>
+	}
+}

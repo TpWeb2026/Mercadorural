@@ -1,0 +1,37 @@
+package views
+
+templ UsuarioForm(form UsuarioFormData) {
+	<form method="post" action="/usuario" class="form-stack">
+		<div class="field">
+			<label for="usuario-nombre">Nombre</label>
+			<input id="usuario-nombre" name="nombre" type="text" autocomplete="given-name" value={ form.Nombre } required/>
+		</div>
+		<div class="field">
+			<label for="usuario-apellido">Apellido</label>
+			<input id="usuario-apellido" name="apellido" type="text" autocomplete="family-name" value={ form.Apellido } required/>
+		</div>
+		<div class="field">
+			<label for="usuario-contacto">Contacto</label>
+			<input id="usuario-contacto" name="contacto" type="email" autocomplete="email" placeholder="correo@ejemplo.com" value={ form.Contacto }/>
+		</div>
+		<button type="submit" class="btn btn-primary">Crear usuario</button>
+	</form>
+}
+
+templ NuevoUsuarioPage(form UsuarioFormData, mensaje string) {
+	@Layout("Nuevo usuario") {
+		<section class="panel">
+			<div class="panel-header">
+				<div>
+					<p class="section-kicker">Usuarios</p>
+					<h1>Agregar usuario</h1>
+				</div>
+			</div>
+			if mensaje != "" {
+				<div class="alert alert-error" role="alert">{ mensaje }</div>
+			}
+			@UsuarioForm(form)
+			<p class="status"><a href="/">Volver al mercado</a></p>
+		</section>
+	}
+}

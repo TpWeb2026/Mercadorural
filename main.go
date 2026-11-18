@@ -1,29 +1,46 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-	"net/http" // es lo que me permite crear un servidor web y manejar peticiones HTTP
+	"log"
+	"net/http"
+	"os"
+	db "tp2/db/sqlc"
+
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	//Defino la direccion estatica
-	// con el FileServer ya se contemplan las rutas inexistentes por lo cual al ingresar a una ruta que no existe devuelve 404 page not found
-	// FileServer tambien contempla los Content-Type
-	// creo un manejador de archivos del sistema de archivo de "/static"
-	// el http.dir(staticdir) convierte la ruta del directorio en un sistema de archivo http
-	staticdir := "./static"
-	fs := http.FileServer(http.Dir(staticdir))
+	if err := godotenv.Load(); err != nil {
+		log.Println("No se encontró el archivo .env; se usan las variables del entorno")
+	}
 
-	// Registramos que se muestre la pagina cada vez que se accede ala raiz
-	http.Handle("/", fs)
+	dsn := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+	)
 
-	// Define el puerto y muestra un mensaje
-	port := ":8080"
-	fmt.Printf("Servidor escuchando en http://localhost%s\n", port)
-
-	// Inicia el servidor HTTP
-	err := http.ListenAndServe(port, nil) // sirve para arrancar un servidor web en el puerto especificado y manejar las peticiones entrantes. El segundo parámetro es nil porque no estoy usando un mux personalizado, sino el predeterminado.
+	conexion, err := sql.Open("postgres", dsn)
 	if err != nil {
-		fmt.Printf("Error al iniciar el servidor: %s\n", err)
+		log.Fatalf("Error al abrir la conexión: %v", err)
+	}
+	defer conexion.Close()
+
+	if err := conexion.Ping(); err != nil {
+		log.Fatalf("Error conectando a la base de datos: %v", err)
+	}
+	log.Println("Conexión a la base de datos exitosa")
+
+	app := &application{consultas: db.New(conexion), conexion: conexion}
+
+	log.Println("Servidor escuchando en http://localhost:8080")
+	if err := http.ListenAndServe(":8080", app.routes()); err != nil {
+		log.Fatalf("Error al iniciar el servidor: %v", err)
 	}
 }
