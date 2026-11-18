@@ -102,8 +102,8 @@ test-api:
 
 run-app:
 
-	# Usamos las barras invertidas para mantener las variables dentro
-	# de una misma terminal durante toda la ejecución.
+	@# Usamos las barras invertidas para mantener las variables dentro
+	@# de una misma terminal durante toda la ejecución.
 
 	@echo "--- Limpiando entorno previo ---"
 	docker compose -f $(COMPOSE_FILE) down -v
