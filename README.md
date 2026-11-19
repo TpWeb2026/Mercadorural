@@ -19,7 +19,9 @@ una base de datos con Docker, Tests y un script para automatizar el setup.~~
 
 - ~~TP4: Interfaz de usuario en HTML, CSS y JavaScript que consume la API REST. Permite crear usuarios, animales y publicaciones, listar publicaciones activas y eliminar registros.~~
 
-- TP5: Esta etapa reemplaza la arquitectura de API JSON + JavaScript por una aplicación renderizada en el servidor con templ. Las vistas se generan en Go y los formularios funcionan con recargas completas de página y el patrón Post/Redirect/Get.
+- ~~TP5: Esta etapa reemplaza la arquitectura de API JSON + JavaScript por una aplicación renderizada en el servidor con templ. Las vistas se generan en Go y los formularios funcionan con recargas completas de página y el patrón Post/Redirect/Get.~~
+  
+- TP6: En esta etapa integramos interfaces reactivas con HTMX para crear y eliminar publicaciones de forma dinámica, actualizando únicamente el fragmento necesario del DOM sin recargar la página completa.
 
 ## Flujo de la aplicación
 
@@ -37,6 +39,7 @@ Mercado Rural es una aplicación web para la compra y venta de animales.
 
 - **Go + `net/http`**: servidor, ruteo y manejo de formularios.
 - **templ**: componentes HTML renderizados en el servidor.
+- **HTMX**: actualización parcial del DOM sin recargas completas en creación y borrado de publicaciones.
 - **PostgreSQL + sqlc**: persistencia y acceso a datos.
 - **Docker Compose**: ejecución de PostgreSQL.
 - **Pico.css**: estilos base.
@@ -156,7 +159,8 @@ make test
 
 - Los precios se envían como texto porque sqlc representa las columnas `NUMERIC` como `string` en Go.
 - El usuario operador se guarda en una cookie del servidor.
-- La creación de una publicación y su animal se ejecuta en una transacción.
+- La creación de una publicación y su animal se ejecuta en una transacción. Ante peticiones HTMX (HX-Request: true), POST /publicacion devuelve únicamente el fragmento de la lista actualizada.
+- La eliminación de una publicación se resuelve vía DELETE /publicacion/{id}. Ante peticiones HTMX, responde con un 200 OK vacío para que HTMX remueva la tarjeta del DOM.
 - La compra se ejecuta en una transacción: se marca la publicación como finalizada y se inserta la venta.
 - La baja de cuenta se ejecuta en una transacción: elimina las publicaciones activas y sus animales, conserva las finalizadas y marca al usuario como inactivo.
 - Pico.css está vendorizado (descargado) para que la aplicación funcione sin conexión a internet.
