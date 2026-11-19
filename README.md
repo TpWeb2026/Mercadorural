@@ -140,11 +140,11 @@ Para detenerla, usar `Ctrl+C`; el script se encarga de la limpieza final.
 ## Cómo probar el flujo
 
 1. Agregar un usuario con el botón **Agregar usuario**.
-2. Publicar un animal desde **Mis publicaciones**.
+2. Publicar un animal desde Mis publicaciones y verificar que el listado se actualice sin recargar la página.
 3. Agregar un segundo usuario y seleccionarlo como operador.
-4. Comprar la publicación del primer usuario desde **Publicaciones de otros usuarios**.
+4. Comprar la publicación del primer usuario desde Publicaciones de otros usuarios.
 5. Verificar que la publicación comprada desaparezca de los listados (queda finalizada en la base de datos).
-6. Probar la eliminación de una publicación activa y verificar que también se elimine el animal asociado.
+6. Probar la eliminación de una publicación activa y verificar que la tarjeta desaparezca sin recargar la página (y que también se elimine el animal asociado).
 7. Probar la eliminación de una cuenta y verificar que sus publicaciones activas desaparezcan y sus publicaciones finalizadas se conserven en la base.
 
 ## Pruebas
