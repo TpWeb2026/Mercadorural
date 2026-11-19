@@ -142,7 +142,8 @@ run-app:
 	cat $(SCHEMA_DIR)/*.sql | docker compose -f $(COMPOSE_FILE) exec -T $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) > /dev/null; \
 	echo "-> Verificando puerto 8080..."; \
 	if fuser 8080/tcp > /dev/null 2>&1; then \
-		echo "AVISO: El puerto 8080 está ocupado. No se detendrán procesos ajenos."; \
+		echo "El puerto 8080 está ocupado. No se detendrán procesos ajenos, libérelo antes de volver a ejecutar"; \
+		exit 1; \
 	fi; \
 	echo "--- Levantando aplicación SSR ---"; \
 	./bin/run-api & ID_SERVIDOR=$$!; \
