@@ -33,7 +33,7 @@ templ PublicacionesPropiasList(publicaciones []PublicacionVista) {
 								<button 
 									type="button" 
 									class="btn btn-danger"
-									hx-post={ urlEliminar("publicacion", publicacion.ID) }
+									hx-delete={ "/publicacion/" + strconv.FormatInt(publicacion.ID, 10) }
 									hx-target="closest article"
 									hx-swap="outerHTML"
 									hx-confirm="¿Estás seguro de que querés eliminar esta publicación?"

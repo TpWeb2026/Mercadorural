@@ -128,14 +128,14 @@ func PublicacionesPropiasList(publicaciones []PublicacionVista) templ.Component 
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\">Editar</a><button type=\"button\" class=\"btn btn-danger\" hx-post=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\">Editar</a><button type=\"button\" class=\"btn btn-danger\" hx-delete=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var7 string
-					templ_7745c5c3_Var7, templ_7745c5c3_Err = templruntime.NewAttributeExpression(urlEliminar("publicacion", publicacion.ID)).Resolve(ctx)
+					templ_7745c5c3_Var7, templ_7745c5c3_Err = templruntime.NewAttributeExpression("/publicacion/" + strconv.FormatInt(publicacion.ID, 10)).Resolve(ctx)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/entity_list.templ`, Line: 36, Col: 61}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/entity_list.templ`, Line: 36, Col: 76}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 					if templ_7745c5c3_Err != nil {

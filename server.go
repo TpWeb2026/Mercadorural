@@ -33,7 +33,7 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("GET /publicacion/{id}/editar", app.editarPublicacionForm)
 	mux.HandleFunc("POST /publicacion/{id}/editar", app.actualizarPublicacion)
 	mux.HandleFunc("POST /publicacion/{id}/comprar", app.comprarPublicacion)
-	mux.HandleFunc("POST /publicacion/{id}/eliminar", app.eliminarPublicacion)
+	mux.HandleFunc("DELETE /publicacion/{id}", app.eliminarPublicacion)
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
 	return mux
