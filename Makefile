@@ -102,53 +102,50 @@ test-api:
 
 run-app:
 
+	
 	@# Usamos las barras invertidas para mantener las variables dentro
 	@# de una misma terminal durante toda la ejecución.
-
-	@echo "--- Limpiando entorno previo ---"
-	docker compose -f $(COMPOSE_FILE) down -v
-
-	@echo "--- Generando código Go con SQLC ---"
-	sqlc generate
-
-	@echo "--- Generando código Go con Templ ---"
-	templ generate
-
-	@echo "--- Compilando aplicación SSR ---"
-	go build -o ./bin/run-api .
-
-	@echo "--- Levantando PostgreSQL ---"
-	docker compose -f $(COMPOSE_FILE) up -d
-
-	@echo "-> Esperando a que PostgreSQL esté listo..."
-	@while ! docker compose -f $(COMPOSE_FILE) exec -T $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) -c "SELECT 1" > /dev/null 2>&1; do \
-		sleep 1; \
-	done
-	@echo "-> Base de datos: UP"
-
-	@echo "-> Cargando esquemas SQL..."
-	@cat $(SCHEMA_DIR)/*.sql | docker compose -f $(COMPOSE_FILE) exec -T $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) > /dev/null
-
-#esto es necesario porque si hay otra cosa escuchando en el puerto no anda
-
-	@echo "-> Liberando puerto 8080..."
-	@fuser -k 8080/tcp 2>/dev/null || true
-
-
-	@echo "--- Levantando aplicación SSR ---"
-# aca creamos una funcion que se llama cuando se apreta ctrl + c, lo cual detiene el servidor y da de baja el docker
-	@./bin/run-api & ID_SERVIDOR=$$!; \
+	@set -e; \
+	ID_SERVIDOR=""; \
 	cleanup() { \
+		trap - EXIT INT TERM; \
 		echo ""; \
 		echo "--- Deteniendo servidor Go ---"; \
-		kill $$ID_SERVIDOR 2>/dev/null || true; \
-		wait $$ID_SERVIDOR 2>/dev/null || true; \
+		if [ -n "$$ID_SERVIDOR" ]; then \
+			kill $$ID_SERVIDOR 2>/dev/null || true; \
+			wait $$ID_SERVIDOR 2>/dev/null || true; \
+		fi; \
 		echo "--- Limpiando el entorno de Docker ---"; \
-		docker compose -f $(COMPOSE_FILE) down -v; \
+		docker compose -f $(COMPOSE_FILE) down -v || true; \
 		echo "Aplicación SSR finalizada."; \
 		exit 0; \
 	}; \
-	trap cleanup INT TERM; \
+	trap cleanup EXIT; \
+	trap 'exit 130' INT; \
+	trap 'exit 143' TERM; \
+	echo "--- Limpiando entorno previo ---"; \
+	docker compose -f $(COMPOSE_FILE) down -v; \
+	echo "--- Generando código Go con SQLC ---"; \
+	sqlc generate; \
+	echo "--- Generando código Go con Templ ---"; \
+	templ generate; \
+	echo "--- Compilando aplicación SSR ---"; \
+	go build -o ./bin/run-api .; \
+	echo "--- Levantando PostgreSQL ---"; \
+	docker compose -f $(COMPOSE_FILE) up -d; \
+	echo "-> Esperando a que PostgreSQL esté listo..."; \
+	while ! docker compose -f $(COMPOSE_FILE) exec -T $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) -c "SELECT 1" > /dev/null 2>&1; do \
+		sleep 1; \
+	done; \
+	echo "-> Base de datos: UP"; \
+	echo "-> Cargando esquemas SQL..."; \
+	cat $(SCHEMA_DIR)/*.sql | docker compose -f $(COMPOSE_FILE) exec -T $(DB_CONTAINER) psql -U $(DB_USER) -d $(DB_NAME) > /dev/null; \
+	echo "-> Verificando puerto 8080..."; \
+	if fuser 8080/tcp > /dev/null 2>&1; then \
+		echo "AVISO: El puerto 8080 está ocupado. No se detendrán procesos ajenos."; \
+	fi; \
+	echo "--- Levantando aplicación SSR ---"; \
+	./bin/run-api & ID_SERVIDOR=$$!; \
 	echo "-> Esperando respuesta de http://localhost:8080..."; \
 	TIMEOUT=10; \
 	while [ $$TIMEOUT -gt 0 ] && ! curl -s http://localhost:8080/ > /dev/null 2>&1; do \
@@ -157,7 +154,7 @@ run-app:
 	done; \
 	if [ $$TIMEOUT -eq 0 ]; then \
 		echo "El servidor Go no respondió a tiempo."; \
-		cleanup; \
+		exit 1; \
 	fi; \
 	echo "-> Aplicación SSR: UP"; \
 	echo "-> Presione Ctrl+C para detener la aplicación."; \
